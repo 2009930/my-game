@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>猫咪小院</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#faf6ef;font-family:system-ui,sans-serif;color:#302a25}
+.app{max-width:600px;margin:auto;padding:10px;padding-bottom:110px;position:relative;overflow:hidden}
+.card{background:#fffdf8;border:1px solid #e4d9ca;border-radius:16px;padding:12px;margin-bottom:10px}
+.scene{position:relative;height:340px;background:#eff6ff;border-radius:12px;overflow:hidden}
+.point{position:absolute;cursor:pointer;text-align:center;font-size:42px;line-height:1;user-select:none;-webkit-touch-callout:none;-webkit-user-select:none}
+.point small{display:block;font-size:11px;color:#5f544a;margin-top:2px;background:#ffffffcc;border-radius:6px;padding:0 4px;display:inline-block}
+.cat-img{width:80px;height:80px;object-fit:contain;display:block;margin:0 auto;filter:drop-shadow(0 4px 6px rgba(0,0,0,.15));pointer-events:none;-webkit-touch-callout:none;}
+.cat-anim{animation:catIdle 4s ease-in-out infinite}
+@keyframes catIdle{0%{transform:translate(0,0) rotate(-2deg)}25%{transform:translate(4px,-4px) rotate(0deg)}50%{transform:translate(0,-7px) rotate(2deg)}75%{transform:translate(-4px,-4px) rotate(0deg)}100%{transform:translate(0,0) rotate(-2deg)}}
+.cat-hop{animation:catHop 0.5s ease-out}
+@keyframes catHop{0%{transform:translateY(0) scale(1,1)}30%{transform:translateY(-16px) scale(0.95,1.08)}60%{transform:translateY(0) scale(1.05,0.95)}100%{transform:translateY(0) scale(1,1)}}
+@keyframes treeShake{0%{transform:rotate(0)}25%{transform:rotate(-10deg)}50%{transform:rotate(8deg)}75%{transform:rotate(-5deg)}100%{transform:rotate(0)}}
+.tree-shake{animation:treeShake 0.5s ease-out;display:inline-block}
+@keyframes zzzFloat{0%{opacity:0;transform:translateY(0)}15%{opacity:1}40%{opacity:0;transform:translateY(-22px)}100%{opacity:0;transform:translateY(-22px)}}
+.zzz{position:absolute;top:-18px;right:-6px;font-size:18px;animation:zzzFloat 4s ease-in-out infinite;pointer-events:none}
+.btn{background:#fff;border:1px solid #e4d9ca;border-radius:12px;padding:12px;font-size:14px;cursor:pointer;width:100%;margin-top:8px}
+.fbtn{position:fixed;font-size:30px;background:#fff;border:1px solid #e4d9ca;border-radius:50%;width:58px;height:58px;display:grid;place-items:center;box-shadow:0 6px 18px #0002;cursor:pointer;z-index:8;user-select:none}
+.fbtn:active{transform:scale(1.08)}
+.fbtn small{position:absolute;bottom:-3px;font-size:10px;color:#806f60;background:#fff;border-radius:6px;padding:0 4px}
+.modal-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;padding:12px;z-index:99999;overflow:hidden;backdrop-filter:blur(2px)}
+.modal{background:rgba(255,253,248,0.96);border-radius:16px;padding:16px;max-width:520px;width:100%;max-height:88vh;overflow:auto;box-shadow:0 10px 30px rgba(0,0,0,0.2)}
+.modal h3{margin:8px 0;font-size:16px;text-align:center}
+.modal p{line-height:1.7;margin:10px 0;font-size:14px}
+.opt{display:block;width:100%;text-align:left;background:#f3eadf;border:1px solid #e4d9ca;border-radius:12px;padding:12px;margin-top:8px;font-size:14px;cursor:pointer;color:#302a25;font-family:inherit}
+.opt:active{background:#eadbc4}
+.opt:disabled{opacity:.5;cursor:not-allowed}
+.item{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid #e4d9ca;border-radius:12px;padding:10px 12px;margin-top:8px;gap:8px}
+.item .info{flex:1;min-width:0}
+.item .name{font-size:14px}
+.item .desc{font-size:11px;color:#806f60;margin-top:2px}
+.item button{background:#f3eadf;border:1px solid #e4d9ca;border-radius:10px;padding:8px 14px;font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit}
+.item button:disabled{opacity:.45}
+.hint{font-size:12px;color:#806f60;line-height:1.6;margin:6px 0}
+.heart{position:absolute;font-size:26px;animation:rise 1.6s ease-out forwards;pointer-events:none;z-index:20}
+@keyframes rise{0%{opacity:0;transform:translateY(0)}20%{opacity:1}100%{opacity:0;transform:translateY(-80px)}}
+.toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#000a;color:#fff;padding:12px 20px;border-radius:14px;z-index:999999;pointer-events:none;text-align:center;max-width:80vw}
+.birdLane{position:absolute;font-size:34px;width:33.33%;text-align:center;pointer-events:none}
+#errbox{position:fixed;top:0;left:0;right:0;background:#c00;color:#fff;padding:8px;font-size:12px;z-index:9999999;word-break:break-all;display:none}
+.bubble{position:absolute;background:#fff;border:2px solid #e4d9ca;border-radius:12px;padding:6px 10px;font-size:24px;top:-45px;left:50%;transform:translateX(-50%);white-space:nowrap;z-index:50;box-shadow:0 4px 8px rgba(0,0,0,0.1);animation:popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)}
+.bubble::after{content:'';position:absolute;bottom:-8px;left:50%;margin-left:-8px;border-width:8px 8px 0;border-style:solid;border-color:#fff transparent transparent}
+.bubble::before{content:'';position:absolute;bottom:-11px;left:50%;margin-left:-8px;border-width:8px 8px 0;border-style:solid;border-color:#e4d9ca transparent transparent;z-index:-1}
+@keyframes popIn{0%{transform:translateX(-50%) scale(0)}100%{transform:translateX(-50%) scale(1)}}
+</style>
+</head>
+<body>
+<div id="errbox"></div>
+<div id="app"></div>
+<div id="overlay" class="modal-bg"><div id="modal" class="modal"></div></div>
+<div class="fbtn" style="left:14px;bottom:14px" onclick="taskMenu()">📜<small>任务</small></div>
+<div class="fbtn" style="right:14px;bottom:14px" onclick="save()">💾<small>保存</small></div>
+
+<script>
+window.onerror=function(m,u,l){var b=document.getElementById('errbox');if(b){b.style.display='block';b.textContent='❌ '+m+' | 第'+l+'行'}};
+
+// ======== 音效系统 ========
+var audioCtx=null,purrTimer=null;
+function initAudio(){if(!audioCtx){var AC=window.AudioContext||window.webkitAudioContext;if(AC)audioCtx=new AC()}if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume()}
+function clickSnd(){try{initAudio();if(!audioCtx)return;var osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type='sine';var t=audioCtx.currentTime;osc.frequency.setValueAtTime(600,t);gain.gain.setValueAtTime(0.05,t);gain.gain.exponentialRampToValueAtTime(0.001,t+0.1);osc.connect(gain);gain.connect(audioCtx.destination);osc.start(t);osc.stop(t+0.1)}catch(e){}}
+function meowSnd(){try{initAudio();if(!audioCtx)return;var t=audioCtx.currentTime;var osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type='sine';osc.frequency.setValueAtTime(800,t);osc.frequency.linearRampToValueAtTime(1300,t+0.1);osc.frequency.exponentialRampToValueAtTime(700,t+0.35);gain.gain.setValueAtTime(0,t);gain.gain.linearRampToValueAtTime(0.12,t+0.02);gain.gain.exponentialRampToValueAtTime(0.001,t+0.35);osc.connect(gain);gain.connect(audioCtx.destination);osc.start(t);osc.stop(t+0.35)}catch(e){}}
+function purrSnd(){try{initAudio();if(!audioCtx)return;var t=audioCtx.currentTime;var osc=audioCtx.createOscillator(),gain=audioCtx.createGain(),lfo=audioCtx.createOscillator(),lfoGain=audioCtx.createGain();osc.type='sawtooth';osc.frequency.value=40;lfo.type='sine';lfo.frequency.value=25;lfoGain.gain.value=0.08;gain.gain.setValueAtTime(0,t);gain.gain.linearRampToValueAtTime(0.15,t+0.2);gain.gain.setValueAtTime(0.15,t+0.8);gain.gain.exponentialRampToValueAtTime(0.001,t+1.5);var filter=audioCtx.createBiquadFilter();filter.type='lowpass';filter.frequency.value=200;lfo.connect(lfoGain);lfoGain.connect(gain.gain);osc.connect(filter);filter.connect(gain);gain.connect(audioCtx.destination);osc.start(t);lfo.start(t);osc.stop(t+1.5);lfo.stop(t+1.5)}catch(e){}}
+function startPurr(){if(purrTimer)clearInterval(purrTimer);purrSnd();purrTimer=setInterval(purrSnd,1600)}
+function stopPurr(){if(purrTimer){clearInterval(purrTimer);purrTimer=null}}
+function jankenWinSnd(){try{initAudio();if(!audioCtx)return;var t=audioCtx.currentTime;[523.25,659.25,783.99,1046.50].forEach(function(freq,i){var osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type='sine';osc.frequency.value=freq;gain.gain.setValueAtTime(0,t+i*0.1);gain.gain.linearRampToValueAtTime(0.06,t+i*0.1+0.05);gain.gain.exponentialRampToValueAtTime(0.001,t+i*0.1+0.3);osc.connect(gain);gain.connect(audioCtx.destination);osc.start(t+i*0.1);osc.stop(t+i*0.1+0.3)})}catch(e){}}
+function coinSnd(){try{initAudio();if(!audioCtx)return;var osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type='square';var t=audioCtx.currentTime;osc.frequency.setValueAtTime(987.77,t);osc.frequency.setValueAtTime(1318.51,t+0.08);gain.gain.setValueAtTime(0.05,t);gain.gain.exponentialRampToValueAtTime(0.001,t+0.3);osc.connect(gain);gain.connect(audioCtx.destination);osc.start(t);osc.stop(t+0.3)}catch(e){}}
+document.addEventListener('pointerdown',function(e){var target=e.target;if(target.tagName==='BUTTON'||target.classList.contains('opt')||target.classList.contains('fbtn')||target.closest('button'))clickSnd()});
+
+// ======== 数据 ========
+var CATS={
+  芝麻:{img:'https://img.remit.ee/i/cXbOB2rObM90',job:'服装设计师',heart:'💛',petTexts:['💕 芝麻凑过来蹭了蹭你的手','💕 芝麻挠了挠自己的脸','💕 芝麻歪着头看着你'],like:['肉罐头','猫汤罐头','猫薄荷茶'],dislike:['整块肉冻干','羊奶冻干片']},
+  糯米:{img:'https://img.remit.ee/i/IP5390jtZ8Gg',job:'图书管理员',heart:'💙',petTexts:['💕 糯米眨眨眼，凑近闻了闻','💕 糯米闻了闻你的手','💕 糯米安静地蹭了蹭你的腿'],like:['整块肉冻干','蒸虾','猫薄荷茶'],dislike:['无盐奶酪','羊奶冻干片']},
+  小咪:{img:'https://img.remit.ee/i/ecP6N2gZlAUJ',job:'程序员',heart:'💚',petTexts:['💕 小咪慢悠悠蹭了蹭你的腿','💕 小咪舔了舔你的手','💕 小咪打了个小哈欠'],like:['猫薄荷茶','无盐奶酪','羊奶冻干片'],dislike:['小块蒸红薯','小颗蒸玉米']}
+};
+var FOOD_SHOP=[['🍠','小块蒸红薯','软糯香甜小零食',15],['🌽','小颗蒸玉米','清甜可口',18],['🍤','蒸虾','高蛋白小食',32],['🧀','无盐奶酪','少量，适合猫咪',28],['🍳','无油煎蛋','清淡蛋白餐',22],['🍵','猫薄荷茶','舒缓情绪',26],['🫓','羊奶冻干片','香脆冻干',35],['🥩','肉罐头','满满肉粒',50],['🥓','整块肉冻干','高能量冻干',42],['🥘','猫汤罐头','补水肉汤',48]];
+var FURN_SHOP=[['indoorPlant','🪴','猫咪友好植物','屋内',40],['fountain','⛲','喷泉','院子',120],['ladder','🪵','攀爬木杆','院子',80],['rock','🪨','景观岩石','院子',60],['slide','🛝','滑梯','院子',150]];
+var FURN_DESC={indoorPlant:'🪴 一盆翠绿的植物，叶子在光里轻轻摇动。',fountain:'⛲ 一汪小喷泉，水珠顺着石阶慢慢落下。',ladder:'🪵 一根结实的木杆，正好给猫猫磨爪用。',rock:'🪨 一块厚重的岩石，站上去能看得很远。',slide:'🛝 一架小滑梯，猫猫可以从上面滑下去。'};
+
+// 家具剧情（第一个为专属，2、3为通用扩充）
+var FURN={
+indoorPlant:{icon:'🪴',name:'猫咪友好植物',lines:{
+  芝麻:[
+    ["🪴 芝麻来到盆栽旁边，对花盆内部充满好奇，伸出爪子不断刨挖，一点点将花盆里面的装饰石子全部扒出来散落在地板上，玩得不亦乐乎。","静静看着玩耍",4,"轻声制止刨土行为",7,"收拾散落的石子",6],
+    ["🪴 猫咪凑到绿植前，好奇地闻了闻叶子的清香。","给它浇点水",6,"把植物移到高处",4,"陪它一起观察",7],
+    ["🪴 阳光透过窗户洒在植物上，猫咪懒洋洋地靠在花盆边晒太阳。","不去打扰它",7,"给它挪挪位置",6,"拿零食逗它",4]
+  ],
+  糯米:[
+    ["🪴 糯米被植物鲜嫩叶片吸引，凑近盆栽反复嗅闻，试探伸出牙齿轻轻啃咬植物叶片。","立刻上前分开",4,"看护，防止大量啃食",7,"零食转移注意力",6],
+    ["🪴 猫咪围着植物转了两圈，伸出爪尖轻轻碰了碰垂下来的叶子。","由着它去",6,"稍作制止",4,"拿出玩具",7],
+    ["🪴 猫咪似乎觉得花盆里松软的泥土很舒服，正打算蜷在上面。","把它抱下来",7,"铺个小垫子",6,"随它去",4]
+  ],
+  小咪:[
+    ["🪴 小咪走到盆栽旁边，将脸颊紧贴植物叶片来回摩擦，借助植物蹭脸留下自己气味标记。","安静旁观",4,"轻轻抚摸小咪",7,"清理掉落碎叶",6],
+    ["🪴 猫咪盯着随风微动的叶子看呆了，尾巴在地上扫来扫去。","陪它一起看",7,"轻轻叫醒它",6,"拿零食",4],
+    ["🪴 猫咪用爪子扒拉了一下植物的茎秆，发现弄不倒，有些疑惑。","觉得好笑",7,"把它抱走",6,"给点吃的",4]
+  ]
+}},
+fountain:{icon:'⛲',name:'喷泉',lines:{
+  芝麻:[
+    ["⛲ 芝麻绕着喷泉来回踱步许久，终于抵挡不住清澈流水的诱惑，毫不犹豫抬脚踩进喷泉内部。冰凉的水花随着它的动作四处飞溅，它低头不停拨弄水面，玩得忘乎所以，完全不在意溅湿的皮毛。","轻声呼唤它回来",4,"放任它继续玩水",7,"拿柔软毛巾上前擦干",6],
+    ["⛲ 猫咪趴在喷泉边，看着水里的倒影，似乎在想这是哪只猫。","陪它一起看倒影",7,"拨一下水弄散",6,"把它叫回来",4],
+    ["⛲ 喷泉的水声哗哗作响，猫咪蹲在旁边听得很认真。","静静陪它听",7,"抱起它去别处",4,"开个小零食",6]
+  ],
+  糯米:[
+    ["⛲ 糯米慢悠悠走到喷泉旁边，感受到水面散发出的丝丝凉意，觉得这里是绝佳的休息地点。它小心翼翼蜷起蓬松的长毛，寻了一处背风的位置趴下，没过多久眼皮慢慢垂落，打算靠着喷泉美美睡一觉。","安静不去打扰",4,"轻轻抚摸糯米",7,"拿来小垫子铺在旁边",6],
+    ["⛲ 猫咪用前爪试探性地拍了拍水面，被溅起的水花吓了一跳。","觉得可爱",7,"安抚一下",6,"拿毛巾",4],
+    ["⛲ 几只小鸟在喷泉边喝水，猫咪躲在草丛里暗中观察。","静观其变",6,"把鸟赶走",4,"把猫叫回来",7]
+  ],
+  小咪:[
+    ["⛲ 小咪站在喷泉边缘一动不动，盯着源源不断流动的清水，慢慢抬起自己的肉垫，反复伸进水流冲洗，耐心清理肉垫缝隙里沾着的尘土，神情专注，丝毫不受周围动静干扰。","静静观望",4,"拿一小份零食奖励",7,"清理溅出来的水渍",6],
+    ["⛲ 猫咪在喷泉附近的浅水洼里踩来踩去，留下一地小脚印。","拿着拖把收拾",4,"跟着它的脚印走",7,"给它擦擦脚",6],
+    ["⛲ 猫咪喝了一口喷泉里的水，砸吧砸吧嘴，似乎觉得味道不错。","换上干净水",7,"由着它喝",4,"拿碗接一点",6]
+  ]
+}},
+ladder:{icon:'🪵',name:'攀爬木杆',lines:{
+  芝麻:[
+    ["🪵 芝麻绕着木杆来回嗅闻，确认这根木杆结实牢靠之后，便伸出锋利的前爪用力来回打磨，细碎木屑随着磨爪一片片飘落下来，它时不时停下，抬头张望小院四周，继续磨爪。","任由它磨爪",4,"上前抚摸它的脑袋",7,"检查木杆是否松动",6],
+    ["🪵 猫咪在木杆底端磨了磨爪子，然后仰头看着最顶端。","鼓励它爬上去",6,"在下面放个垫子",7,"拿零食吸引",4],
+    ["🪵 猫咪趴在木杆的半截处，像树袋熊一样抱着，闭目养神。","让它睡会儿",7,"怕它掉下来",6,"叫它下来",4]
+  ],
+  糯米:[
+    ["🪵 糯米慢悠悠爬到木杆上方，小心翼翼调整姿势，稳稳趴在木杆最宽阔的位置。高处安静无风，很快它就闭上眼睛，沉沉进入梦乡，长长的尾巴随着呼吸轻轻晃动。","不要惊扰它",4,"在下方放置软垫防跌落",7,"睡醒之后奖励零食",6],
+    ["🪵 猫咪用爪子扒住木杆，试探着想往上跳，但又有点不敢。","在底下托着它",7,"轻声安抚",6,"随它去",4],
+    ["🪵 猫咪顺着木杆蹭了蹭背，把木杆当成了天然的按摩器。","看着它蹭",7,"拿梳子梳梳毛",6,"拿零食",4]
+  ],
+  小咪:[
+    ["🪵 小咪对高高的木杆充满好奇，尝试向上攀爬，每向上迈出一步都会短暂停下稳住身体，摇摇晃晃，爬一段便低头向下观望，谨慎地继续向上前进。","原地看护看着它",4,"轻声鼓励",7,"落地之后给予奖励",6],
+    ["🪵 猫咪从木杆上跳下来，稳稳落地，得意地甩了甩尾巴。","摸摸它夸赞",7,"给个零食奖励",6,"继续忙自己的",4],
+    ["🪵 猫咪用木杆挠了挠脸颊，在粗糙的木纹上留下了几根猫毛。","清理木杆",4,"留着猫毛",6,"抱抱它",7]
+  ]
+}},
+rock:{icon:'🪨',name:'景观岩石',lines:{
+  芝麻:[
+    ["🪨 芝麻慢悠悠踏上厚重的岩石，一步一步爬到顶端，站在高处感受拂过小院的微风，四处眺望墙外风景，偶尔低头嗅闻岩石表面留下的气味痕迹。","静静陪同",4,"拿零食呼唤它下来",7,"清理岩石表面杂物",6],
+    ["🪨 猫咪在石头周围转悠，试图找一条路爬上去看看。","帮它一把",6,"让它自己找",7,"吸引它下来",4],
+    ["🪨 猫咪趴在石头上，石头被太阳晒得热乎乎的，它舒服地翻了个身。","由着它去",7,"怕它中暑叫下来",6,"拿点水",4]
+  ],
+  糯米:[
+    ["🪨 糯米站上高高的岩石顶端，久久驻足，专注望向隔壁小院，似乎被远处传来的动静深深吸引，一动不动，认真观察墙外世界。","任由它远眺",4,"陪它一同眺望风景",7,"检查岩石边缘安全",6],
+    ["🪨 猫咪用爪子挠了挠石头表面，发现太硬了挠不动。","觉得有趣",7,"把它抱走",6,"给点零食",4],
+    ["🪨 猫咪在石头背后躲着，只露出两只耳朵，似乎在跟你玩捉迷藏。","假装没看见",7,"过去找它",6,"叫它出来",4]
+  ],
+  小咪:[
+    ["🪨 小咪稳稳坐在岩石顶端，紧盯空中飞过的飞鸟，身体微微压低，跃跃欲试，做好随时起身追逐飞鸟的准备。","不干预，任由它观察飞鸟",4,"轻声唤它回来",7,"给一份小零食",6],
+    ["🪨 猫咪绕着石头走了几圈，把石缝里的一根小枯枝叼了出来。","夸奖它",7,"拿过来扔掉",6,"看它怎么玩",4],
+    ["🪨 猫咪趴在石头缝边，用爪子掏着什么东西。","由它去掏",6,"看看它掏到了啥",7,"把它抱走",4]
+  ]
+}},
+slide:{icon:'🛝',name:'滑梯',lines:{
+  芝麻:[
+    ["🛝 芝麻仔细打量滑梯外侧边缘，很快找到了翻越的路线，不断尝试想要顺着滑梯翻出小院，一心想要外出探险。","及时拦住芝麻",4,"加固小院围栏",7,"轻声劝导安抚",6],
+    ["🛝 猫咪顺着滑梯往上爬，结果太滑了，滑下来好几次。","看着它笑",7,"过去帮它",6,"拿零食吸引",4],
+    ["🛝 猫咪从滑梯顶端一跃而下，像是完成了什么伟大的壮举。","鼓掌夸奖",7,"给个零食",6,"抱抱它",4]
+  ],
+  糯米:[
+    ["🛝 糯米挑选滑梯中段舒适平台蜷起身子休息，不知不觉沉沉睡去，翻身失去平衡，顺着滑梯一路滑落下来。","立刻上前接住糯米",4,"检查猫咪有无受伤",7,"软垫铺放在滑梯底部",6],
+    ["🛝 猫咪在滑梯上滑下来，尾巴在空中画了个圈。","摸摸它的头",7,"给点吃的",6,"继续看它玩",4],
+    ["🛝 猫咪用爪子扒拉着滑梯底部的草地，似乎想找什么。","陪它一起找",7,"把它抱走",6,"拿玩具吸引",4]
+  ],
+  小咪:[
+    ["🛝 小咪挑中滑梯中段平坦位置蜷身熟睡，对外界声响毫无察觉。","不去打扰休息",4,"拿薄毯子盖上保暖",7,"醒来投喂零食",6],
+    ["🛝 猫咪从滑梯上滑下来，转身又爬了上去，玩得不亦乐乎。","由着它玩",7,"陪它玩会儿",6,"拿零食",4],
+    ["🛝 猫咪趴在滑梯最上面，像个哨兵一样观察着院子里的动静。","夸它威风",7,"让它继续放哨",6,"叫它下来",4]
+  ]
+}}
+};
+
+// 完整恢复并扩写背景文本
+var JOB={
+芝麻:[
+["📞 服装设计工作室迎来了一年中最忙碌的换季时节。客户的高级定制订单堆积如山，工作台上的灯光一直亮到深夜。桌上摊开着一份新一季的设计稿，现在急需确定整体的主色调。各种色卡和布料小样混杂在一起，你需要在一堆灵感中做出最终的选择。芝麻趴在色卡上，用爪子拨弄着几张色纸，等你拿主意。","用温和的燕麦色打底，安全不出错","7|4","用沉稳的藏蓝色做主调，质感高级","6|7","用大胆的橘红撞色，抢眼又时髦","4|11"],
+["📞 服装打样阶段是决定成衣质感的关键环节。车间里缝纫机的声音此起彼伏，样衣工正在等待面料的下达。为了满足不同客户的需求，你需要从丝绸、棉麻和新型混纺等众多面料中挑选出最合适的一款作为主打。芝麻把丝绸和厚棉布都扒拉到了桌面中间。","用厚实的棉麻，耐磨好打理","7|4","用细腻的真丝，光泽高级","5|8","用混纺新面料，便宜又出新意","4|10"],
+["📞 一位老客户带着一件有着特殊纪念意义的旧大衣登门拜访。大衣的面料依然完好，只是内衬已经磨损严重。客户希望能最大程度地保留大衣原本的风格，只重新制作内衬。这是一项精细活，不仅要挑选合适的面料，还要确保新里衬不会影响大衣整体的垂坠感。芝麻把布料样角叼了过来。","用同色系素色里衬，经典耐看","7|4","用细碎花纹里衬，翻开有惊喜","5|7","用撞色里衬，反差抢眼","4|10"],
+["📞 季度末的盘库工作是每个工作室的重头戏。成百上千种颜色的线轴、堆成小山的各类布料、还有满箱的辅料配件，让原本宽敞的库房显得拥挤不堪。为了下个季度的工作效率，必须要对整个库房进行一次彻底的整理和清点。芝麻趴在布料堆上不肯下来。","按色系分类码好，一目了然","7|5","按材质重新摆放，方便取用","6|7","顺手淘汰一批旧料，把空间腾出来","4|9"],
+["📞 市中心的一所中学找上门，希望定制一批既有校园活力又不失稳重的校服。经过几轮修改，最终的样衣已经制作完成。但在最后关头，大家都觉得袖口和领口略显单调。需要添加一道撞色滚边来作为视觉焦点，提升整件衣服的精气神。芝麻在旁边歪着脑袋看。","用同一块布料做两件，最保险","7|5","同色不同图案，呼应又有区分","6|8","一大一小两种风格，各自出彩","4|10"],
+["📞 时装周走秀的邀请函已经放在案头，这是一次向业界展示实力的绝佳机会。压轴作品的定稿引发了团队内部的激烈讨论。是选择已经过市场验证的经典廓形保底，还是大胆启用极具争议的结构主义设计来博取眼球？这关乎工作室未来的走向。芝麻把两颗纽扣拨来拨去。","做经典款，稳妥收官","7|6","做一点点改良，保留辨识度","6|9","大胆推翻重做，赌一把话题度","3|13"],
+["📞 桌面上摆放各色布料小样与丝线，设计工作正在进行。芝麻被柔软布料吸引，蜷在布料堆之中，爪子轻轻扒拉丝线。","拿出更多柔软布料供芝麻玩耍","7|-3","收拾散落丝线防止误食",6,"静静观看芝麻玩耍","4|-3"],
+["📞 缝纫篮里面放着各色缝衣线与纽扣，芝麻扒开篮子，滚动散落的纽扣追来追去。","拿出大的安全纽扣给它玩耍",6,"收好细小配件","4|-3","拿出软布料陪芝麻游戏",7],
+["📞 裁好的布匹平铺桌面，芝麻直接躺到布料中央，把崭新的布料当做自己午睡床铺。","任由芝麻在布料上休息",7,"小心抱它到旁边软垫",6,"零食吸引芝麻离开","4|-3"],
+["📞 一卷丝带垂落桌边，丝带随风轻轻晃动，芝麻紧盯飘动丝带，不断起跳扑抓。","手持丝带和芝麻互动玩耍",7,"剪断过长丝带收纳好","6|-3","安静看它扑抓丝带","4|-3"],
+["📞 模特小人摆放工作台，芝麻绕着人偶转圈，伸出爪子轻轻拍打人偶裙摆。","拿出碎布料给人偶增加装饰","6|-3","将人偶放到高处收纳","4|-3","坐在一旁陪伴芝麻探索",7],
+["📞 设计草图铺满整张工作台，芝麻踩在图纸上来回踱步，爪子时不时划过线条。","任由芝麻在草图上散步",7,"小心将草图移至高处收好","4|-3","拿出空白画纸放在旁边供芝麻踩踏",6],
+["📞 收纳柜中翻出一卷轻薄雪纺布料，芝麻伸出爪子不停去抓飘动的布角。","剪下一小块碎布陪芝麻玩耍",7,"卷起布料放回柜子收纳","6|-3","静静观看它扑抓布料","4|-3"],
+["📞 桌面上摆放着一排不同色号的线轴，芝麻伸出爪子拨动线轴，看着线轴在桌面滚动。","挑大尺寸线轴给芝麻推着玩",6,"全部收进盒子防止散落","4|-3","坐在一旁陪着芝麻玩耍",7],
+["📞 新到货的蕾丝辅料放在桌边，芝麻凑近反复嗅闻，用脸颊蹭蹭蕾丝面料。","拿出一小块蕾丝给芝麻当做小垫子","7|-3","将蕾丝辅料妥善收纳",6,"安静旁观芝麻探索新材料","4|-3"],
+["📞 人体模特身上刚上好半成品样衣，芝麻绕模特打转，伸出爪子轻轻拉扯样衣下摆。","剪下多余碎布给芝麻玩耍",6,"把模特挪到猫咪碰不到的区域","4|-3","陪芝麻观察模特上的样衣","7|-3"],
+["📞 工作台上堆着很多裁缝剪刀和卷尺，芝麻在桌面上走动，尾巴不小心扫到了工具。","把工具收进抽屉里",6,"拿零食安抚",4,"陪它玩一会儿",7],
+["📞 工作间里飘着淡淡的毛线气味，芝麻在毛线球堆里打滚。","由着它玩",7,"把毛线球收起来",6,"拿逗猫棒吸引",4],
+["📞 阳光照在工作台上，芝麻躺在一个空的纸样盒里晒太阳。","给它垫个小毯子",7,"把盒子挪到暗处",4,"拿零食",6],
+["📞 缝纫机旁边放着几个人台模型，芝麻踮起脚尖去够上面的珠针。","立刻制止并收好",7,"给它换个玩具",6,"随它去",4]
+],
+糯米:[
+["📞 市立图书馆即将进行全面数字化升级。面对浩如烟海的藏书，如何建立一个既高效又准确的编目系统成了迫在眉睫的问题。之前的图书分类法已经无法满足现在读者的检索需求。为了让新系统能顺利上线，需要重新规划整个书库的编目规则。糯米把登记卡拨得沙沙响。","按出版年份编号，规整清晰","7|4","按主题分类编号，方便查找","6|7","按借阅热度排序，读者省时间","4|10"],
+["📞 一年一度的图书采购季又到了。今年的预算相比去年略有缩减，但读者的需求却越来越多样化。采购部的同事列出了几份不同的采购清单，涵盖了畅销小说、专业工具书以及一些精美的精装画册。你需要权衡预算与需求，拍板定下最终的订单。宣传册摊开在桌上，糯米用爪子按着其中一页。","多买几本畅销小说，借的人多","7|5","进一批工具书，长期有用","6|7","订一套精装绘本，贵但会被记住","4|11"],
+["📞 古籍修复室里的工作总是安静且繁琐。一批从旧藏书库转移出来的民国时期期刊，正面临着纸张酸化、脆化的危险。修复师傅给出了几种不同的抢救方案，从简单的脱酸处理到重新装订，每一种都需要耗费大量的时间和精力。糯米趴在摊开的书页上。","直接换新的平装本，省事","7|4","用胶带补好封面，能看就行","6|6","找老师傅重新装订，贵但能留很久","4|11"],
+["📞 为了让更多社区儿童爱上阅读，图书馆决定在周末举办一场大型的绘本故事会。场地已经布置完毕，各种精美的绘本也准备就绪。现在最关键的是确定故事会的主题和互动方式，既要吸引孩子们的注意力，又要让陪同的家长觉得有教育意义。糯米竖着耳朵看你翻目录。","查系统目录，快速定位","7|4","去库房慢慢翻，也许还有惊喜","6|7","帮她联系其他馆借调，周到","5|9"],
+["📞 图书馆的角落有一块空闲的区域，管理层希望将其打造成一个常设的文化展览区。经过初步讨论，大家提出了几个截然不同的主题方向，有的偏向历史怀旧，有的偏向自然科普，还有的侧重于名人手迹的展示。这不仅是展示馆藏，更是提升图书馆文化底蕴的好机会。糯米绕着书架转。","办「城市记忆」老照片展，怀旧","7|5","办「植物图鉴」展，清新","6|7","办「手稿与信笺」展，少见","4|11"],
+["📞 知名作家的新书发布会即将在图书馆举行。预计当天会有大量的粉丝和媒体到场。除了常规的讲座和签售环节，如何让读者有更好的体验成了当务之急。策划团队在讨论是否要增加一些额外的互动环节，或者布置一个更有氛围的打卡点。糯米把宣传单按来按去。","准备简单的签售桌，低调","7|5","加一点小礼品，人气旺","6|8","布置主题角，拍出来照片好看","4|11"],
+["📞 书架摆放大量书籍，糯米跳到书架中层，伸出爪子拍打书脊，时不时用鼻尖轻嗅书本。","拿出绘本陪糯米翻阅",7,"整理书架，书籍归位","6|-3","拿出纸片当做简易书页",4],
+["📞 摊开的厚重书本放置桌面，糯米直接趴在打开的书页上，把书本当成休息软垫。","任由糯米趴在书上休息",7,"轻轻将猫咪移到旁边坐垫","6|-3","零食吸引糯米离开书本","4|-3"],
+["📞 地上散落借阅登记卡片，糯米用爪子拨动卡片，把卡片推得到处都是。","拿出厚卡片专门供糯米拨弄",6,"快速收好全部卡片","4|-3","坐在一旁陪伴糯米玩耍",7],
+["📞 书柜顶端放着旧画册，糯米努力向上跳跃想要触碰画册。","拿出旧画册放到低处供糯米翻看",7,"把画册收纳稳妥","6|-3","静静观察糯米尝试跳跃","4|-3"],
+["📞 桌面上摆放羽毛书签，糯米紧盯书签缓慢移动身体准备扑击。","拿起书签逗糯米玩耍",7,"将细小书签收纳进盒子","6|-3","安静旁观糯米动作",4],
+["📞 桌面上堆放着一摞等待归类上架的新书，糯米跳到书堆顶端，压得整摞书本微微倾斜。","任由糯米趴在书堆顶端休息",7,"轻轻抱起糯米，快速整理图书",6,"拿零食吸引糯米离开书堆","4|-3"],
+["📞 借书登记簿摊开在桌面上，糯米伸出肉垫拨弄钢笔，把本子推来推去。","拿出粗蜡笔给糯米拨弄玩耍","6|-3","收好钢笔防止笔尖划伤","4|-3","坐在一旁陪伴糯米探索",7],
+["📞 旧藏书散发出淡淡的纸香，糯米凑到书本缝隙之间，不停嗅闻旧书页独有的气味。","安静看着糯米嗅闻旧书",7,"轻轻引导糯米远离珍贵古籍","6|-3","拿出零食转移注意力","4|-3"],
+["📞 窗边放着一本摊开的童话绘本，糯米伸出爪子拍打绘本里面绘制的小动物图案。","坐在旁边陪糯米翻看绘本",7,"合上绘本放到安全位置",6,"拿出纸片模拟书页","4|-3"],
+["📞 整理出来一批准备捐赠的二手书籍，糯米钻进书箱之中，蜷缩在书本之间不肯出来。","就让糯米留在书箱内小憩",6,"小心将糯米抱出，封好书箱","4|-3","拿零食哄糯米从箱子出来","7|-3"],
+["📞 借阅系统卡顿了一下，屏幕亮起又熄灭，糯米趴在键盘边看着闪烁的光标。","轻轻拍拍它",6,"重启电脑",4,"给个小零食",7],
+["📞 图书馆里很安静，只有翻书的沙沙声。糯米在书桌上睡着了，尾巴自然垂下。","不去打扰它",7,"给它盖个小毯子",6,"悄悄离开",4],
+["📞 图书车停在一旁，糯米跳上了推车，像个巡视领地的国王。","推着车转转",7,"把它抱下来",6,"拿零食",4],
+["📞 阳光穿过落地窗照在阅览区，糯米趴在光斑里伸懒腰。","陪它晒太阳",7,"把窗帘拉上",4,"拿逗猫棒",6]
+],
+小咪:[
+["📞 公司的核心业务系统已经到了不得不重构的边缘。老旧的单体架构导致代码耦合严重，每次上线新功能都像是在走钢丝。技术委员会正在召开紧急会议，讨论下一代系统的底层架构选型。是继续使用熟悉的老框架，还是冒险引入全新的微服务架构？小咪蹲在键盘前。","用熟悉的老语言，稳","7|5","用一种新框架，快","6|8","从头选一门小众语言，折腾但有趣","4|12"],
+["📞 算法部门正在为一个核心的推荐功能进行性能调优。随着用户量的激增，原有的数据结构已经无法满足毫秒级的响应要求。你需要在内存占用和查询速度之间找到一个完美的平衡点。几个高级工程师在白板上画满了各种复杂的数据结构图。小咪在草稿纸上踩来踩去。","用数组，简单直接","7|4","用哈希表，查得快","6|7","上一棵平衡树，结构漂亮","4|11"],
+["📞 历史遗留代码就像一颗随时会爆炸的定时炸弹。这段由前员工留下的代码不仅没有任何注释，而且逻辑混乱，缺少完整的测试用例。每次线上出现问题，修改起来都极其痛苦。团队正在评估是花一个月时间彻底重构，还是仅仅打补丁维持现状。小咪趴在键盘上不让你动。","只改最痛的那一块，稳","7|5","分模块整体重写，慢但清爽","6|8","干脆推倒重来换架构，冒险","3|13"],
+["📞 项目即将对接第三方支付平台，接口文档的编写工作落到了你的头上。合作方要求文档必须详尽、准确，并且要提供完整的测试用例。为了降低后期的沟通成本，你需要决定文档的详细程度和呈现方式。这不仅是技术工作，更是沟通的艺术。小咪把注释卡片拨来拨去。","写清楚参数和返回值，够用","7|4","附上调用示例，新人好上手","6|7","配一套交互式在线文档，费时但好用","4|11"],
+["📞 线上环境突然出现了一个极度偶发的 bug。它平均几万次请求才会出现一次，且没有任何明显的规律。研发团队已经盯着监控屏幕看了几个小时，依然毫无头绪。面对这种棘手的状况，是选择用笨办法加海量日志死磕，还是靠直觉盲猜修改？小咪趴在日志上。","先加日志观察，稳妥","7|5","按经验猜一处最可疑的改掉","6|7","花一整天做压力测试复现","4|12"],
+["📞 距离新版本的发版窗口只剩不到三个小时了。测试团队列出了长长的回归测试用例，如果全部跑完，肯定会错过最佳上线时间。产品和研发负责人都在会议室里看着你，等待你做出最终的裁决。这关乎公司的声誉和本季度的 KPI。小咪在屏幕前歪着脑袋。","跑一遍核心用例就发布，快","7|5","全量回归测试，稳","6|8","加一整套自动化测试，慢但一劳永逸","4|12"],
+["📞 桌上散落很多写满笔记的草稿，小咪跳上书桌，爪子拨弄散落便签纸。","陪着小咪翻看草稿",7,"收好草稿防止撕坏","4|-3","拿出纸片供小咪玩耍","6|-3"],
+["📞 电脑屏幕还亮着，光标不停闪烁，小咪一跃跳上键盘，随意踩下按键。","任由小咪踩键盘玩耍",6,"抱开小咪保存文档","4|-3","放一张旧键盘专门给小咪踩踏",7],
+["📞 收纳盒放着许多数据线，小咪伸出爪子勾扯线缆来回拉扯。","拿出旧数据线给小咪把玩",7,"收好线缆避免咬断","6|-3","安静旁观它探索线缆","4|-3"],
+["📞 桌上摆放着一堆U盘与零件，小咪绕着桌面来回走动，时不时伸出鼻子嗅闻。","拿出塑料小物件供它探索","6|-3","全部收纳进抽屉","4|-3","坐在一旁陪伴小咪探索",7],
+["📞 深夜还留着半完成的流程图，小咪趴在图纸上，尾巴盖住大半图表，不肯挪开。","不打扰，让小咪趴在图纸休息",7,"轻轻抱起它放到旁边软垫","6|-3","拿零食吸引它离开桌面","4|-3"],
+["📞 桌面上摊开多张架构示意图，小咪趴在图纸正中央，挡住大半流程图。","不去打扰，任由小咪趴在图纸休息",7,"轻轻抱至旁边软垫上",6,"拿零食吸引小咪离开图纸","4|-3"],
+["📞 工具箱摆放很多螺丝、电阻等小型电子零件，小咪探头往工具箱里面张望。","挑安全无尖锐边角的零件给小咪探索",6,"立刻盖紧工具箱盖子","4|-3","坐在一旁看护小咪探索","7|-3"],
+["📞 外接显示器处于待机状态，屏幕时不时微微闪烁，小咪紧盯屏幕上光影变化。","陪着小咪观看屏幕光影",7,"关闭显示器电源","6|-3","拿出零食转移注意力","4|-3"],
+["📞 桌上摆放着一堆备用键盘键帽，小咪伸出爪子拨动键帽，看着键帽滑动。","收集多余键帽给小咪当做玩具",7,"全部收纳进密封盒","6|-3","安静旁观小咪拨弄键帽","4|-3"],
+["📞 桌上放着一个闲置的路由器，指示灯一闪一闪，小咪蹲在路由器前方专注盯着。","陪小咪观察闪烁指示灯","6|-3","放到高处避免碰落设备",4,"拿出逗猫棒陪小咪玩耍","7|-3"],
+["📞 键盘旁边有一杯水，小咪盯着水杯里的倒影看了好一会。","把水杯挪远一点",6,"由着它看",7,"拿零食逗它",4],
+["📞 主机的散热风扇嗡嗡作响，小咪趴在机箱旁边感受着吹出来的热风。","把猫抱走",6,"由着它取暖",7,"拿逗猫棒",4],
+["📞 屏幕上的代码一行行滚过，小咪盯着那些移动的字符发呆。","摸摸它的头",7,"把它抱走",6,"拿小零食",4],
+["📞 桌子底下有堆纸箱子，小咪钻进了箱子里，只露出半截尾巴。","假装没看见",7,"把它拽出来",6,"拿零食哄",4]
+]
+};
+var SINGLE=[
+["☎️ 深秋的午后，小院里堆积了大量枯黄的落叶。风一吹，叶子不仅飘得到处都是，还容易堵塞排水口。看着满地的落叶，你准备花点时间把院子打扫干净。","把落叶扫到花坛里做堆肥",7,"把枯枝捆好当柴火",4,"直接打包扔到垃圾站",6],
+["☎️ 社区的布告栏上贴出了一张流浪动物救助站的志愿者招募令。随着气温骤降，救助站里的毛孩子们急需保暖物资和食物。负责人希望大家能伸出援手，去帮忙整理一下仓库。","报名参加周日的物资整理",7,"捐出家里多余的旧毛毯",4,"帮忙在线上转发募捐链接",6],
+["☎️ 快递送来了一个大得惊人的纸箱。拆开外包装后，里面的商品其实并不占地方。这个结实的瓦楞纸箱如果直接扔掉实在可惜，你决定给它找个更好的归宿。","把纸箱拆平，当作废品回收",7,"剪出几个洞，做成猫咪迷宫",6,"在纸箱里铺上软垫当猫窝",4],
+["☎️ 厨房水槽下方的管道接口处传来了滴答滴答的漏水声。打开柜门一看，地面的积水已经蔓延开来。工具箱里有生料带和扳手，趁着现在水还不大，必须赶紧把这个问题解决掉。","关掉总闸，重新缠生料带拧紧",7,"直接买一根全新的软管换上",6,"先拿个水盆接着，以后再修",4],
+["☎️ 天气渐渐转凉，衣柜里的厚衣服该拿出来整理一下了。有些衣服已经好几年没穿过，有些则因为款式过时或者起球褪色而闲置。面对塞得满满当当的衣柜，你决定进行一次彻底的断舍离。","把不穿的旧衣服打包捐给慈善机构",7,"把衣服按季节重新归类收纳",6,"扔进旧衣回收箱，腾出空间",4],
+["☎️ 外面突然下起了大雨，阳台上的衣服还没来得及收。雨势越来越大，如果不赶快收进来，刚洗好的衣服又要重洗了。","冲出去把衣服全收进来",7,"等雨小点再说",4,"让衣服淋一会儿",6],
+["☎️ 水龙头最近总是发出刺耳的嘶嘶声，而且水流也变得很小。可能是起泡器里积攒了太多的水垢。","拧下起泡器清洗",7,"直接买个新的换上",6,"先不管它",4],
+["☎️ 冰箱里放着几盒快过期的牛奶和蔬菜，需要赶紧处理掉。","今天把它们全吃掉",7,"直接扔了",4,"送给邻居",6],
+["☎️ 地板上有一些顽固的污渍，拖把拖不干净。","拿抹布蹲下来擦",7,"用清洁剂泡一会",6,"假装没看见",4],
+["☎️ 家里的绿植叶子发黄了，需要修剪。","剪掉黄叶并施肥",7,"直接换一盆",4,"顺其自然",6],
+["☎️ 小区门口贴了停水通知，晚上八点开始停水。","赶紧去洗个澡",7,"把家里能装水的盆都接满",6,"早点睡觉",4],
+["☎️ 微波炉里面有一股奇怪的味道。","切个柠檬放进去加热去味",7,"拿湿抹布擦一擦",6,"开着门通风",4],
+["☎️ 手机屏幕脏得看不清了。","拿眼镜布仔细擦干净",7,"去贴个新膜",4,"随便在衣服上蹭蹭",6],
+["☎️ 中午不知道吃什么，打开外卖软件看了半天。","点个平时没吃过的",7,"自己做一顿",6,"随便吃个面包",4],
+["☎️ 坐在沙发上发呆，发现角落的插座上积了一层灰。","拿湿纸巾擦干净",7,"用吸尘器吸",6,"太麻烦了不管",4]
+];
+var ONLINE=[
+["☎️ 小区的业主微信群里炸开了锅，原来是角落的公共饮水机坏了。清澈的水流得满地都是，不仅浪费资源，还容易让路过的老人小孩滑倒。物业的维修人员一时半会儿赶不过来，大家在群里纷纷出主意。","主动下楼帮忙关水阀并清理积水",7,"联系物业经理催促快点派人来修",4,"在群里安抚大家情绪",6],
+["☎️ 图书馆的线上借阅系统发来了一条催还通知。你借的几本大部头书籍马上就要到期了。如果逾期不还，不仅会产生滞纳金，还会影响个人的信用分。看着桌上那几本厚厚的书，你开始规划今天的行程。","带着书亲自跑一趟图书馆还书",7,"在系统里直接操作续借一个月",6,"拜托顺路的朋友帮忙代还",4],
+["☎️ 小区广场上正在举办一场闲置物品交换集市。大家纷纷把家里吃灰的书籍、小家电、手办摆上了摊位。你逛了一圈，发现隔壁摊位上有一张你寻觅已久的老唱片。","直接走过去问他能不能交换",7,"花点钱把他的唱片买下来",6,"看了一圈，决定提前收摊回家",4],
+["☎️ 厨房的冰箱最近总是发出奇怪的低频嗡嗡声，而且冷藏室的制冷效果似乎大不如前了。你担心是不是压缩机老化出了问题。如果继续放任不管，里面的食物可能都会坏掉。","立刻在网上找同城上门维修师傅",7,"先拔掉电源，清理一下背后的灰尘",6,"再观察两天，实在不行再修",4],
+["☎️ 电脑屏幕右下角弹出了磁盘空间不足的警告，红色的进度条让人焦虑。系统提示可能需要清理大量临时文件或者卸载一些长期不用的软件，否则电脑会变得越来越卡。","使用清理软件深度扫描垃圾文件",7,"挨个检查并卸载不用的游戏",6,"把几个大文件夹转移到移动硬盘",4],
+["☎️ 邻居家重新装修，电钻声吵得人头疼。","出门去咖啡馆避一避",7,"戴降噪耳机听歌",6,"敲门去理论",4],
+["☎️ 停电了，手机只剩百分之十的电。","赶紧开启省电模式",7,"把该保存的都保存",6,"干脆关机",4],
+["☎️ 走路时不小心踢到了桌角，脚趾头传来一阵剧痛。","坐下来揉一揉",7,"去拿冰袋敷一下",6,"生闷气",4],
+["☎️ 发现有只小飞虫一直在眼前绕来绕去。","用电蚊拍解决",7,"开窗赶出去",6,"用手拍",4],
+["☎️ 衣服上的拉链卡住了，拉不上也拉不下。","涂点肥皂试试",7,"找修衣店",6,"用力拽",4]
+];
+var REWARD=[
+["☎️ 接到社区网格员的紧急电话，一窝刚出生不久的小猫被遗弃在废弃的仓库里。现在天气寒冷，如果不及时救助，它们很难存活。需要立刻组织人手带上纸箱和羊奶粉前往。","提着东西马上赶过去接猫",8,"在网上发布求助信息寻找专业救助",7],
+["☎️ 市里的动物保护协会正在牵头组织一场大型的领养日活动。现场需要大量的志愿者来布置场地、照顾待领养的动物、以及向市民介绍领养流程。负责人问你周末有没有空。","周末去现场做一整天志愿者",8,"捐赠一批猫粮和狗粮作为物资支持",7],
+["☎️ 小区里的流浪猫数量越来越多了，很多居民反映晚上叫声扰民。社区决定开展一次 TNR（抓捕-绝育-放归）行动，需要有人协助专业医生进行诱捕和术后照顾。","主动报名参与抓捕协助工作",8,"出钱资助本次绝育活动的医疗费",7],
+["☎️ 楼下新开了一家宠物用品店。老板为了打开市场，急需一些懂宠物、有耐心的人来帮忙画几张吸引眼球的宣传海报，并且要在店门口维持一天的现场秩序。","去帮老板画一天海报并维持秩序",8,"转发店里的促销信息到业主群",7],
+["☎️ 独居的张奶奶下周要回老家办点事，大概需要离开半个月。她最放心不下的就是家里那只叫“大黄”的老橘猫，担心没人喂食铲屎。她拿着钥匙找到了你。","每天上门给大黄喂食换水",8,"帮着联系一家靠谱的上门喂养机构",7],
+["☎️ 昨晚下了一场暴雨，早上起来发现小区的流浪猫窝都湿透了。","拿上工具去修修",8,"拿旧衣服去铺一下",7],
+["☎️ 朋友临时有事要出差，问能不能帮忙代养几天她家的小狗。","答应她，带回来照顾",8,"家里没条件，帮她找个寄养",7],
+["☎️ 周末有个宠物领养日的活动需要人手帮忙搬东西。","去出一份力",8,"捐点物资",7],
+["☎️ 小区里有人贴了寻猫启事，猫咪走丢两天了。","帮忙转发一下",8,"在附近帮忙找找",7],
+["☎️ 有一家救助站急缺物资，在朋友圈发起了募捐。","捐一小笔钱",8,"捐几袋猫粮",7]
+];
+var GOLD=[
+["🚞 乘坐列车短途出游，窗外风景飞速向后掠过，连空气里都透着自由的味道。现在面临一个岔路口，是继续留在车上欣赏风景，还是下车去走走？","留在车上，静静欣赏风景",6,"在下一站下车，去周边徒步",40,"拿出准备好的零食补充体力",4],
+["🏕 郊外营地草木茂盛，虫鸣此起彼伏。夜幕降临，篝火升起来了。这正是一个绝佳的放松时刻，你可以选择不同的方式度过这个夜晚。","在篝火旁喝杯热茶早点休息",6,"打着手电筒去夜游探险",40,"整理好帐篷的睡袋准备睡觉",4],
+["🏖 温热的沙滩踩上去软软的，海浪一遍遍冲刷海岸线，海风裹挟咸咸水汽扑面而来。沙滩上散落着一些美丽的贝壳，远处的海面上有海鸥在飞。","去海边寻找最好看的贝壳",6,"待到黄昏看海边落日",40,"找个遮阳伞下的躺椅休息",4],
+["🏝 乘船抵达安静小岛，岛上植被茂密，四周环绕清澈海水。岛上没有太多游客，只有一条蜿蜒的徒步小路，可以深入岛内探索。","带着装备探索林间小路",6,"租个自行车环岛游览",40,"留在沙滩上吹风晒太阳",4],
+["🚉 列车停靠在一个不知名的小站。站台上有些冷清，只看到一只流浪小狗在角落里发抖。","去便利店买根火腿肠喂它",6,"轻轻靠近它试图安抚",7,"远远看着，不打扰它",4],
+["🌌 坐在夜间的列车上，车窗外一片漆黑，只有远处的城市灯光闪烁。车厢里很安静，只有铁轨摩擦的声音。","靠在椅背上睡一觉",6,"看着窗外发呆",7,"拿出零食慢慢吃",4]
+];
+var CARD=[
+["🌁","山间晨雾","清晨山间弥漫着白茫茫薄雾，远处山峰若隐若现，宛如仙境。面对这番美景，你可以选择不同的方式去感受。","站在原地，静静感受雾气",6,"试图往更深处走走，探索未知",7,"原地休息等待雾气散开",4],
+["🗾","辽阔平原","一望无际的广阔平原，风吹过草海掀起层层波浪。极目远眺，天地一线。这片空旷让人心旷神怡。","漫无目的地向前走",6,"找个高处眺望远方地平线",7,"就地坐下感受微风",4],
+["🎑","山野月夜","一轮明月悬在山野上空，四周安安静静。皎洁的月光洒在山林间，偶尔传来几声鸟叫。在这里赏月，别有一番滋味。","在山林间散步赏月",6,"拿出零食，小酌一杯",7,"准备收拾行李返程",4],
+["🏞","溪谷清泉","幽深溪谷之中，清泉顺着岩石缓缓流淌。水质清澈见底，甚至能看到小鱼游动。清凉的水汽扑面而来。","蹲下来洗一把脸",6,"顺着小溪往上走，寻找源头",7,"坐在溪边的大石头上发呆",4],
+["🌅","黎明朝阳","天边一点点透出金色霞光，朝阳缓缓升起。周围渐渐亮了起来，新的一天开始了，充满了希望。","闭眼感受日出的温度",6,"用相机记录这一刻",7,"收拾东西准备下山",4],
+["🌄","山巅日出","站在高高的山巅之上，俯瞰云海之中升起的朝阳。云层像海浪一样翻涌，金色的光芒穿透云层，壮观无比。","站在最高点大声呼喊",6,"找个避风的地方静静欣赏",7,"吃顿自带的热乎早餐",4],
+["🌇","黄昏落日","夕阳染红整片天空，暖橙色光芒铺满大地。飞鸟归巢，万物开始归于平静，这是最美的一抹余晖。","拍下一张绝美的落日",6,"坐在长椅上放空自己",7,"趁着天黑前赶快回去",4],
+["🌆","暮色黄昏","天色慢慢转暗，天边残留最后一抹橘色霞光。路灯逐渐亮起，城市的喧嚣渐渐平息，微风带来一丝凉意。","沿着街道慢慢散步",6,"在街边的小店吃碗热面",7,"加快脚步踏上归途",4],
+["🏙","城市黄昏","城市楼宇之间，黄昏柔光洒落在高楼顶端。车水马龙，霓虹初上，这是都市一天中最迷人的时刻。","找个天台俯瞰城市",6,"去商场里逛逛打发时间",7,"走下观景台去赶地铁",4],
+["🌃","都市夜景","夜幕降临，万家灯火次第点亮，整片城市星光点点。站在高处，看着下面的车水马龙，仿佛在看一个巨大的发光机器。","在观景台吹吹夜风",6,"找一家酒吧喝杯软饮",7,"打车回酒店休息",4],
+["🌉","跨江大桥夜景","长长的大桥挂满灯带，灯光倒映在江面之上，波光粼粼。江风吹过，带来水汽的湿润感。","在桥边拍夜景",6,"上桥走一段感受江风",7,"在岸边找个地方坐下",4],
+["🌌","浩瀚银河","远离城市光污染，澄澈夜空之中银河清晰舒展。满天繁星闪烁，震撼着每一根神经，让人感到宇宙的浩瀚。","躺在草坪上数星星",6,"尝试用手机拍星空",7,"看冷了，起来活动活动",4],
+["🌠","流星划过","夜空之中一道流星快速划过天际。虽然短暂，却十分明亮。这是一个属于许愿的瞬间。","闭上眼许个愿",6,"跳起来大呼小叫",7,"继续盯着天空等下一颗",4],
+["🎇","烟花升空","夜空中绽放一簇簇盛大烟花，流光漫天。巨大的爆炸声和绚烂的色彩交织在一起，氛围被推向了高潮。","找个好位置疯狂拍照",6,"跟着人群一起欢呼",7,"躲到安静的地方避避",4],
+["🎆","盛大烟火","连片烟火轮番升空，整片夜空不断被绚丽色彩点亮。空气里弥漫着硝烟的味道，节日的氛围浓烈。","挤到前面去看个痛快",6,"找个高处的台阶静静看",7,"提前离场避开人流",4],
+["🏜","大漠沙丘","连绵起伏的金色沙丘，空旷辽阔，风吹扬起细沙。烈日当空，四下无人，只有沙子在风中发出微微的呼啸。","赤脚爬上最高的沙丘",6,"体验滑沙的刺激",7,"躲进阴影里多喝水",4]
+];
+
+var NEIGHBOR_STORIES = [
+  { start: "邻居热情地把你迎进门，屋里飘着淡淡的花香。", opt1: "夸赞对方的家居布置", opt1End: "邻居笑得合不拢嘴，跟你分享了许多装饰的小心得。", opt2: "安静地坐在沙发上喝杯茶", opt2End: "虽然没有太多交流，但宁静的氛围让人觉得十分放松。" },
+  { start: "刚坐下，邻居就端出了一盘精致的自制小点心。", opt1: "尝一口并惊叹味道", opt1End: "邻居大方地把配方告诉了你，还打包了一份让你带回家。", opt2: "先拍照发个朋友圈", opt2End: "邻居很开心，说下次还要尝试做新的口味给你吃。" },
+  { start: "邻居聊起了最近在阳台种菜的经历，虽然有些手忙脚乱。", opt1: "分享你的种植经验", opt1End: "你们聊得十分投机，邻居送了你好几颗新鲜的小番茄。", opt2: "耐心倾听并不时点头", opt2End: "邻居觉得找到了倾诉对象，心情变得非常愉悦。" },
+  { start: "窗外的阳光很好，邻居提议去院子里坐坐。", opt1: "去院子里晒太阳", opt1End: "阳光暖洋洋的，你们在院子里聊了很多生活中的趣事。", opt2: "留在屋内看会儿书", opt2End: "邻居挑了一本好书给你，安静的下午过得很快。" }
+];
+
+var FEST={
+spring:{icon:'🧧',name:'春节',flag:'spring',dates:[[1,22],[1,23],[1,24],[1,25],[1,26],[1,27],[1,28],[1,29],[2,1],[2,2],[2,3],[2,4],[2,5],[2,6],[2,7],[2,8],[2,9],[2,10],[2,11],[2,12],[2,13],[2,14],[2,15]],sets:[["🧧 新春到来，家家户户贴春联，爆竹断断续续响起。窗外的冷风里带着年的味道。","贴窗花，挂红灯笼",8,"包一堆饺子当宵夜",6,"准备红包发给大家",7]]},
+lantern:{icon:'🧨',name:'元宵节',flag:'yuanxuan',dates:[[2,5],[2,6],[2,7],[2,8],[2,9],[2,10],[2,11],[2,12]],sets:[["🧨 元宵灯会灯火璀璨，各色花灯流光溢彩，远处传来喧闹人声。街头挤满了看灯的人。","挤进人群猜灯谜",7,"买一碗热腾腾的汤圆",5,"顺着人少的小巷走",8]]},
+dragon:{icon:'🎋',name:'端午节',flag:'duanwu',dates:[[5,28],[5,29],[5,30],[5,31],[6,1],[6,2],[6,3],[6,4],[6,5],[6,6],[6,7],[6,8],[6,9],[6,10],[6,11],[6,12],[6,13],[6,14],[6,15],[6,16],[6,17],[6,18],[6,19],[6,20]],sets:[["🎋 艾草悬挂门前，淡淡的草药香气飘散在空气之中。江面上传来隐隐约约的龙舟鼓声。","去江边看龙舟比赛",7,"在家包粽子",6,"挂好艾草驱蚊",8]]},
+midautumn:{icon:'🥮',name:'中秋节',flag:'midautumn',dates:[[9,10],[9,11],[9,12],[9,13],[9,14],[9,15],[9,16],[9,17],[9,18],[9,19],[9,20]],sets:[["🥮 一轮圆月高悬夜空，柔和月光洒落小院。秋风带来阵阵桂花香。","在院子里摆桌赏月",9,"切开月饼分着吃",6,"给远方的朋友打个电话",7]]},
+christmas:{icon:'🎄',name:'圣诞节',flag:'xmas',dates:[[12,24],[12,25],[12,26]],sets:[["🎄 节日来临，屋内布置了精致装饰，亮晶晶挂件轻轻晃动。暖气烧得很足，屋里暖烘烘的。","拆开包装好的礼物",7,"煮一壶热红酒",6,"看一部老电影",8]]},
+halloween:{icon:'🎃',name:'万圣节',flag:'halloween',dates:[[10,28],[10,29],[10,30],[10,31],[11,1]],sets:[["🎃 万圣节到了，屋里挂上了南瓜灯。院子里的树叶沙沙作响，气氛有些神秘。","准备好糖果招待小孩",8,"自己刻个南瓜灯",7,"看一部恐怖片",8]]},
+shopping:{icon:'🛍️',name:'购物节',flag:'shopping',dates:[[11,10],[11,11],[11,12]],sets:[["🛍️ 购物节到了，家里堆满了大大小小的快递箱。手机上的促销信息还在不停闪烁。","熬夜清空购物车",8,"慢慢拆积攒的快递",6,"退掉冲动消费的商品",8]]}
+};
+
+var KEY='sanyuan_v13';
+function today(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
+function blank(){return{catName:null,mood:50,gold:50,star:0,moodDroppedLow:false,inventory:[],postCards:[],playDays:0,bgmOn:true,friends:['邻居小白'],furnStorySeen:{},furniture:{indoorPlant:false,fountain:false,ladder:false,rock:false,slide:false},lastDay:'',daily:{fed:false,bath:false,litter:false,pet:false,single:false,reward:false,neighborEmpty:false,dream:false,trainEvent:false},lastOnlineDay:'',lastYear:new Date().getFullYear(),festivalFlags:{spring:false,yuanxiao:false,duanwu:false,midautumn:false,xmas:false,halloween:false,shopping:false}}}
+var s=null;try{var raw=localStorage.getItem(KEY);if(raw&&raw.length>2&&raw!=='undefined'&&raw!=='null')s=JSON.parse(raw)}catch(e){s=null}
+if(!s||typeof s!=='object')s=blank();
+if(!s.inventory)s.inventory=[];if(!s.postCards)s.postCards=[];if(!s.friends)s.friends=['邻居小白'];if(!s.furnStorySeen)s.furnStorySeen={};if(!s.furniture)s.furniture=blank().furniture;
+if(!s.daily)s.daily={fed:false,bath:false,litter:false,pet:false,single:false,reward:false,neighborEmpty:false,dream:false,trainEvent:false};
+if(s.daily.neighborEmpty===undefined)s.daily.neighborEmpty=false;if(s.daily.dream===undefined)s.daily.dream=false;if(s.daily.trainEvent===undefined)s.daily.trainEvent=false;
+if(!s.lastDay)s.lastDay='';if(!s.lastOnlineDay)s.lastOnlineDay='';if(!s.lastYear)s.lastYear=new Date().getFullYear();if(!s.festivalFlags)s.festivalFlags=blank().festivalFlags;if(typeof s.playDays!=='number')s.playDays=1;if(typeof s.star!=='number')s.star=0;if(typeof s.moodDroppedLow!=='boolean')s.moodDroppedLow=false;if(typeof s.bgmOn!=='boolean')s.bgmOn=true;
+
+var scene='outside',yardPos=null,roomPos=null,catInBasket=false,basketTimer=null;
+var mainName=null, mainPos=null;
+var v1Name=null, v1Pos=null, v1Watered=false, v1Fed=false;
+var v2Name=null, v2Pos=null, v2Watered=false, v2Fed=false;
+var bubbleTimer=null;
+var pressTimer=null, isLongPress=false;
+
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function toast(t){var d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(function(){d.remove()},1600)}
+function closeM(){stopBird();window.catchGameRunning=false;document.getElementById('overlay').style.display='none'}
+function showPanel(html){document.getElementById('overlay').style.display='flex';document.getElementById('modal').innerHTML=html}
+
+function saveData() { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch(e){} }
+window.addEventListener('pagehide', saveData);
+window.addEventListener('visibilitychange', function() { if(document.visibilityState === 'hidden') saveData(); });
+
+function resetSave(){if(!confirm('⚠️ 确定要清空存档吗？'))return;try{localStorage.removeItem(KEY)}catch(e){}s=blank();scene='outside';mainPos=null;roomPos=null;catInBasket=false;closeM();render();setTimeout(chooseCat,300)}
+function refundTravel(n){s.gold+=n;saveData();closeM();toast('💰 退还 '+n);render()}
+function rustle(){try{var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;if(!window._ac)window._ac=new AC();var ac=window._ac;var dur=0.5,sr=ac.sampleRate,buf=ac.createBuffer(1,Math.floor(sr*dur),sr),data=buf.getChannelData(0),last=0;for(var i=0;i<data.length;i++){var r=Math.random()*2-1;last=last*0.75+r*0.25;var t=i/data.length,env;if(t<0.15)env=t/0.15;else if(t<0.6)env=1;else env=(1-t)/0.4;env*=0.7+0.3*Math.sin(t*Math.PI*4);data[i]=last*env}var src=ac.createBufferSource();src.buffer=buf;var hp=ac.createBiquadFilter();hp.type='highpass';hp.frequency.value=800;var lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=4500;lp.Q.value=0.3;var g=ac.createGain();g.gain.setValueAtTime(0.06,ac.currentTime);src.connect(hp);hp.connect(lp);lp.connect(g);g.connect(ac.destination);src.start();src.stop(ac.currentTime+dur)}catch(e){}}
+function clickTree(el){rustle();el.classList.add('tree-shake');setTimeout(function(){el.classList.remove('tree-shake')},600);if(Math.random()<0.3){setTimeout(function(){birdGame()},400)}}
+function checkStar(){if(s.mood<70)s.moodDroppedLow=true;if(s.moodDroppedLow&&s.mood>=90){s.star=(s.star||0)+1;s.moodDroppedLow=false;toast('⭐ 星星 +1！');saveData();}}
+
+function showBubble(catId, text) {
+  var el = document.getElementById(catId);if(!el) return;
+  var old = el.querySelector('.bubble');if(old) old.remove();
+  var b = document.createElement('div');b.className = 'bubble';b.textContent = text;el.appendChild(b);
+  setTimeout(function() { if(b && b.parentNode) b.remove(); }, 3000);
+}
+
+function triggerDream() {
+  if(s.daily.dream) { toast('💤 今天已经做过梦啦~'); return; }
+  s.daily.dream = true; saveData();
+  
+  var catImg = CATS[s.catName].img;
+  var dreamHtml = '<div id="dreamScreen" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:#fff;z-index:999999;display:flex;align-items:center;justify-content:center;flex-direction:column;opacity:0;transition:opacity 1.5s ease;"></div>';
+  document.body.insertAdjacentHTML('beforeend', dreamHtml);
+  setTimeout(function() { document.getElementById('dreamScreen').style.opacity = '1'; }, 50);
+
+  setTimeout(function() {
+    var ds = document.getElementById('dreamScreen'); if(!ds) return;
+    if(Math.random() < 0.5) {
+      ds.innerHTML = '<div style="font-size:80px; animation: catIdle 2s infinite"><img src="'+catImg+'" style="width:80px;height:80px;"></div><br><div id="d1" style="font-size:50px;opacity:0;transition:all 1s">✨ 🧚 ✨</div>';
+      setTimeout(function(){ document.getElementById('d1').style.opacity = '1'; document.getElementById('d1').innerHTML = '❕️❔️ 🧚 ❕️❔️'; }, 1000);
+      setTimeout(function(){ document.getElementById('d1').innerHTML = '🌟 🧚‍♀️ 🌟'; }, 2000);
+      setTimeout(function(){ ds.innerHTML = '<div style="font-size:60px">✨<img src="'+catImg+'" style="width:80px;height:80px;">✨</div>'; }, 3000);
+      setTimeout(function(){ ds.style.opacity = '0'; setTimeout(function(){ ds.remove(); toast('喵呜~（做了个好梦）'); render(); }, 1500); }, 4000);
+    } else {
+      ds.innerHTML = '<div style="font-size:80px; animation: catIdle 2s infinite"><img src="'+catImg+'" style="width:80px;height:80px;"></div><br><div id="d2" style="font-size:50px;opacity:0;transition:all 1s">🌬</div>';
+      setTimeout(function(){ document.getElementById('d2').style.opacity = '1'; document.getElementById('d2').innerHTML = '💨'; }, 1000);
+      setTimeout(function(){ document.getElementById('d2').style.transform = 'scale(1.5) rotate(20deg)'; document.getElementById('d2').innerHTML = '🌪'; }, 2000);
+      setTimeout(function(){ ds.innerHTML = '<div style="font-size:40px">❔️ ❔️ ❔️<br><img src="'+catImg+'" style="width:80px;height:80px;"></div>'; }, 3000);
+      setTimeout(function(){ ds.style.opacity = '0'; setTimeout(function(){ ds.remove(); toast('喵？！（吓醒了）'); render(); }, 1500); }, 4000);
+    }
+  }, 1500);
+}
+
+function trainEvent() {
+  if(s.daily.trainEvent) { 
+      var ev=pick(GOLD),opts=[{text:ev[1],mood:ev[2],gold:0},{text:ev[3],mood:0,gold:ev[4]},{text:ev[5],mood:ev[6],gold:0}];
+      for(var i=opts.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=opts[i];opts[i]=opts[j];opts[j]=t}
+      var html='<div style="font-size:40px;text-align:center">🚏</div><h3>金币任务</h3><p>'+ev[0]+'</p>';
+      for(var k=0;k<opts.length;k++)html+='<button class="opt" onclick="chooseTravel('+opts[k].mood+','+opts[k].gold+')">'+'ABC'[k]+'：'+opts[k].text+'</button>';
+      html+='<button class="opt" style="text-align:center;background:#e8ddd0" onclick="refundTravel(20)">稍后处理</button>';
+      showPanel(html);render(); return; 
+  }
+  s.daily.trainEvent = true; saveData();
+  
+  var catImg = CATS[s.catName].img;
+  showPanel('<div style="text-align:center;font-size:40px">🚅</div><h3>旅行·火车让座</h3><div id="trainScene" style="background:#f0f0f0;padding:20px;border-radius:12px;text-align:center;font-size:40px;line-height:2;">💺💺💺</div><p id="trainText" style="text-align:center;margin-top:10px;"></p>');
+  setTimeout(function(){ document.getElementById('trainText').textContent = '上车后，你发现另外两只猫咪坐在你的座位上。'; }, 500);
+  setTimeout(function(){ document.getElementById('trainScene').innerHTML = '💺 <span class="cat-anim" style="display:inline-block; vertical-align:middle;"><img src="'+catImg+'" style="width:50px;height:50px;"></span> 💺'; }, 1500);
+  setTimeout(function(){ document.getElementById('trainScene').innerHTML = '❔️💺❔️<br><span class="cat-anim" style="display:inline-block;"><img src="'+catImg+'" style="width:50px;height:50px;"></span>'; }, 2500);
+  setTimeout(function(){ document.getElementById('trainText').textContent = '它们看到你有些疲惫，立刻起身给你让座，并送上了一份心意。'; }, 3500);
+  setTimeout(function(){ document.getElementById('trainScene').innerHTML = '💺🎁💺<br><span class="cat-anim" style="display:inline-block;"><img src="'+catImg+'" style="width:50px;height:50px;"></span>'; }, 4500);
+  setTimeout(function(){ document.getElementById('trainScene').innerHTML = '💖<br><span class="cat-anim" style="display:inline-block;"><img src="'+catImg+'" style="width:50px;height:50px;"></span>'; document.getElementById('trainText').textContent = '你坐了下来，感到心里暖暖的。'; }, 5500);
+  setTimeout(function(){ var reward = Math.floor(Math.random()*10) + 20; s.gold += reward; saveData(); coinSnd(); checkStar(); render(); toast('💰 获得让座礼物：+' + reward + ' 金币！'); closeM(); }, 6500);
+}
+
+function startInteractionTimer() {
+  if(bubbleTimer) clearTimeout(bubbleTimer);
+  if(scene === 'outside') return;
+  bubbleTimer = setTimeout(function() {
+    triggerCatAction();
+    startInteractionTimer();
+  }, 4000 + Math.random() * 5000); // 放缓触发速度
+}
+
+function triggerCatAction() {
+  var cats = [];
+  if(document.getElementById('mainCat')) cats.push({id:'mainCat', pos: mainPos || roomPos});
+  if(document.getElementById('v1Cat')) cats.push({id:'v1Cat', pos: v1Pos});
+  if(document.getElementById('v2Cat')) cats.push({id:'v2Cat', pos: v2Pos});
+
+  if(cats.length < 2) return;
+  var idx1 = Math.floor(Math.random() * cats.length);
+  var idx2 = idx1;
+  while(idx1 === idx2 && cats.length > 1) { idx2 = Math.floor(Math.random() * cats.length); }
+  var pair = [cats[idx1], cats[idx2]];
+
+  var getEmoji = function() {
+    var r = Math.random();
+    if (r < 0.85) return pick(['😸', '😽', '😺']); 
+    if (r < 0.95) return pick(['😾', '😹', '😼']); 
+    return pick(['😻', '🙀']); 
+  };
+  var e1 = getEmoji(); var e2 = getEmoji();
+  showBubble(pair[0].id, e1); showBubble(pair[1].id, e2);
+  var triggerWords = ['😾', '😹', '😼'];
+  if(triggerWords.indexOf(e1) >= 0 || triggerWords.indexOf(e2) >= 0) {
+    setTimeout(function(){ triggerJankenGame(pair[0].id, pair[1].id); }, 600);
+  }
+}
+
+function triggerJankenGame(id1, id2) {
+  if(!document.getElementById(id1) || !document.getElementById(id2)) return;
+  var hands = ['✌️','✊','🖐️'];
+  var p1 = pick(hands), p2 = pick(hands);
+  showBubble(id1, p1); showBubble(id2, p2);
+  
+  var win = false, draw = false, msg = "";
+  if(p1 === p2) draw = true;
+  else if((p1 === '✌️' && p2 === '🖐️') || (p1 === '✊' && p2 === '✌️') || (p1 === '🖐️' && p2 === '✊')) win = true;
+
+  setTimeout(function() {
+    var n1 = (id1 === 'mainCat') ? '主猫' : '访客猫';
+    var n2 = (id2 === 'mainCat') ? '主猫' : '访客猫';
+    
+    if(win) { 
+        s.mood = Math.min(100, s.mood + 1); 
+        saveData(); jankenWinSnd(); checkStar(); 
+        msg = n1 + " (" + p1 + ") 赢了！<br>" + n2 + " (" + p2 + ") 输了<br>💖 心情 +1";
+    } else if (draw) { 
+        msg = "平局！<br>大家都出了 " + p1; 
+    } else { 
+        s.mood = Math.max(0, s.mood - 1);
+        saveData();
+        msg = n2 + " (" + p2 + ") 赢了！<br>" + n1 + " (" + p1 + ") 输了<br>💔 心情 -1"; 
+    }
+    showPanel('<div style="text-align:center;font-size:40px">✌️✊🖐️</div><h3>猜拳结果</h3><p style="text-align:center;font-size:16px;line-height:1.8">'+msg+'</p><button class="opt" style="text-align:center" onclick="closeM();render()">确定</button>');
+  }, 1200);
+}
+
+function visitNeighbor() {
+    var html = '<div style="text-align:center;font-size:40px">🏡</div><h3>去拜访邻居</h3><p>去邻居家串门，要不要带点礼物呢？</p>' +
+    '<button class="opt" onclick="enterNeighbor(\'cat\')">🐟 带猫条（消耗 1⭐）</button>' +
+    '<button class="opt" onclick="enterNeighbor(\'neighbor\')">🎁 给邻居带礼物（消耗 1⭐）</button>' +
+    '<button class="opt" onclick="enterNeighbor(\'none\')" ' + (s.daily.neighborEmpty ? 'disabled style="opacity:0.5"' : '') + '>空手去（不消耗，每日限1次）</button>' +
+    '<button class="opt" style="text-align:center;background:#e8ddd0" onclick="closeM()">算了</button>';
+    showPanel(html);
+}
+function enterNeighbor(type) {
+    if(type === 'cat' || type === 'neighbor') {
+        if(s.star < 1) { toast('⭐ 星星不足，无法带礼物！'); return; }
+        s.star -= 1;
+    } else if (type === 'none') {
+        if(s.daily.neighborEmpty) { toast('今天已经空手去过啦，带点礼物吧！'); return; }
+        s.daily.neighborEmpty = true;
+    }
+    saveData(); closeM();
+    var story = pick(NEIGHBOR_STORIES);
+    var html = '<div style="text-align:center;font-size:40px">🏘️</div><h3>拜访邻居</h3><p>' + story.start + '</p>';
+    if(type === 'cat' || type === 'neighbor') html += '<p style="color:#e67e22;font-size:12px">（邻居看到你的礼物非常高兴）</p>';
+    html += '<button class="opt" onclick="neighborChoice(\'' + story.opt1End + '\', \'' + type + '\')">' + story.opt1 + '</button>' +
+    '<button class="opt" onclick="neighborChoice(\'' + story.opt2End + '\', \'' + type + '\')">' + story.opt2 + '</button>';
+    showPanel(html);
+}
+function neighborChoice(endText, type) {
+    var html = '<div style="text-align:center;font-size:40px">🏘️</div><h3>聊天结束</h3><p>' + endText + '</p>';
+    var triggerDrink = (type === 'cat' || type === 'neighbor') ? true : (Math.random() < 0.3);
+    if(triggerDrink) {
+        html += '<p style="color:#e67e22;font-weight:bold;margin-top:10px">邻居端出了一杯特制饮料请你喝！</p>';
+        html += '<button class="opt" style="text-align:center;background:#f3eadf" onclick="drinkNeighborJuice()">☕ 喝下饮料</button>';
+    } else {
+        html += '<p style="color:#806f60;font-size:12px;margin-top:10px">（邻居跟你道别，你回到了家）</p>';
+        html += '<button class="opt" style="text-align:center;background:#e8ddd0" onclick="closeM()">回家</button>';
+    }
+    showPanel(html);
+}
+function drinkNeighborJuice() {
+    var coins = Math.floor(Math.random() * 11) + 10;
+    s.mood = 100; s.gold += coins;
+    saveData(); coinSnd(); checkStar(); render(); closeM();
+    toast('😋 喝下饮料，心情回满！💰 +' + coins + ' 金币');
+}
+
+function visitorTouchStart(e, id, name, pos) {
+    isLongPress = false;
+    pressTimer = setTimeout(function() { isLongPress = true; doPetVisitor(id, name, pos); }, 500); 
+}
+function visitorTouchEnd(e) { if(pressTimer) { clearTimeout(pressTimer); pressTimer = null; } }
+function visitorTouchClick(e, id, name) {
+    if (!isLongPress) { showVisitorMenu(id, name); }
+    isLongPress = false; 
+}
+function mainTouchStart(e) {
+    isLongPress = false;
+    pressTimer = setTimeout(function() { isLongPress = true; doPetMain(); }, 500); 
+}
+function mainTouchEnd(e) { if(pressTimer) { clearTimeout(pressTimer); pressTimer = null; } }
+function mainTouchClick(e) {
+    if (!isLongPress) { pet(); }
+    isLongPress = false;
+}
+
+function showVisitorMenu(id, name) {
+    var html = '<div style="text-align:center"><img src="'+CATS[name].img+'" style="width:60px;height:60px;object-fit:contain"></div>' +
+    '<h3>和 '+name+' 互动</h3><p style="text-align:center;font-size:12px;color:#806f60">长按它可以摸头哦~</p>' +
+    '<button class="opt" onclick="visitorFeedWater(\''+id+'\',\''+name+'\')">💧 递给它一小碗清水</button>' +
+    '<button class="opt" onclick="visitorFeedFood(\''+id+'\',\''+name+'\')">🍖 拿了一点小零食</button>' +
+    '<button class="opt" style="text-align:center;background:#e8ddd0" onclick="closeM();">算了</button>';
+    showPanel(html);
+}
+function visitorFeedWater(id, name) {
+    closeM();
+    if(id==='v1Cat') { if(v1Watered) { toast('它已经喝过水啦~'); return; } v1Watered=true; }
+    if(id==='v2Cat') { if(v2Watered) { toast('它已经喝过水啦~'); return; } v2Watered=true; }
+    meowSnd(); var pos = (id==='v1Cat') ? v1Pos : v2Pos;
+    showFloatingEmoji(pos[0], pos[1], '💧');
+    var msg = '';
+    if(name === '芝麻') msg = '芝麻咕噜咕噜喝得很开心！';
+    else if(name === '糯米') msg = '糯米优雅地舔着水，非常安静。';
+    else msg = '小咪警惕地闻了闻，确认安全后才开始喝。';
+    toast('💧 ' + msg);
+    s.mood = Math.min(100, s.mood + 2); saveData(); showBubble(id, '😺');
+    var catEl = document.getElementById(id);
+    if(catEl) { var inner = catEl.querySelector('.cat-anim'); if(inner) { inner.classList.add('cat-hop'); setTimeout(function(){inner.classList.remove('cat-hop')}, 600); } }
+    render();
+}
+function visitorFeedFood(id, name) {
+    closeM();
+    if(id==='v1Cat') { if(v1Fed) { toast('它已经吃饱啦~'); return; } v1Fed=true; }
+    if(id==='v2Cat') { if(v2Fed) { toast('它已经吃饱啦~'); return; } v2Fed=true; }
+    meowSnd(); var pos = (id==='v1Cat') ? v1Pos : v2Pos;
+    showFloatingEmoji(pos[0], pos[1], '🍖'); 
+    var msg = '';
+    if(name === '芝麻') msg = '芝麻大口大口吃得好香！';
+    else if(name === '糯米') msg = '糯米细嚼慢咽，吃相很斯文。';
+    else msg = '小咪用爪子扒拉着食物，边吃边玩。';
+    toast('🍖 ' + msg);
+    s.mood = Math.min(100, s.mood + 3); saveData(); showBubble(id, '😸');
+    var catEl = document.getElementById(id);
+    if(catEl) { var inner = catEl.querySelector('.cat-anim'); if(inner) { inner.classList.add('cat-hop'); setTimeout(function(){inner.classList.remove('cat-hop')}, 600); } }
+    render();
+}
+function doPetVisitor(id, name, pos) {
+    meowSnd();
+    var catEl = document.getElementById(id);
+    if(catEl) { var inner = catEl.querySelector('.cat-anim'); if(inner) { inner.classList.add('cat-hop'); setTimeout(function(){inner.classList.remove('cat-hop')}, 600); } }
+    toast('💖 摸了摸它毛茸茸的脑袋'); s.mood = Math.min(100, s.mood + 5); saveData(); checkStar(); render();
+    setTimeout(function() {
+        var heartColor = CATS[name].heart;
+        var emojis = ['😻','😹','😸','😾','😺','😼','🙀','😽','😿'];
+        showBubble(id, pick(emojis));
+        for (var i = 0; i < 5; i++) {
+            (function(idx){ setTimeout(function(){ showFloatingEmoji(pos[0] + Math.random()*14 - 7, pos[1] - Math.random()*8, heartColor); }, idx * 100); })(i);
+        }
+    }, 50);
+}
+function doPetMain() {
+    meowSnd();
+    var catX = (scene==='yard') ? mainPos[0] : (roomPos ? roomPos[0] : 50);
+    var catY = (scene==='yard') ? mainPos[1] : (roomPos ? roomPos[1] : 58);
+    toast('💖 摸了摸主猫的脑袋'); s.mood = Math.min(100, s.mood + 5); saveData(); checkStar(); render();
+    setTimeout(function() {
+        var heartColor = CATS[s.catName].heart;
+        var emojis = ['😻','😹','😸','😾','😺','😼','🙀','😽','😿'];
+        showBubble('mainCat', pick(emojis));
+        for (var i = 0; i < 5; i++) {
+            (function(idx){ setTimeout(function(){ showFloatingEmoji(catX + Math.random()*14 - 7, catY - Math.random()*8, heartColor); }, idx * 100); })(i);
+        }
+    }, 50);
+}
+
+function startCatchGame() {
+  var catImg = CATS[s.catName].img;
+  var html = '<h3>🐈 接球小游戏</h3><p class="hint" style="text-align:center">点击手掌🙌，接住掉落的球！</p><div id="catchArea" style="position:relative;width:100%;height:260px;background:#dbeafe;border-radius:14px;overflow:hidden;margin-top:8px"><div style="position:absolute;bottom:0;width:100%;height:100px;background:#fbcfe8;z-index:1"></div><div id="catchCat" style="position:absolute;bottom:80px;left:50%;transform:translateX(-50%);z-index:2;transition:transform 0.2s"><img src="'+catImg+'" style="width:80px;height:80px;object-fit:contain;filter:drop-shadow(0 4px 6px rgba(0,0,0,.15));"></div><div id="catchBall" style="position:absolute;top:0;left:50%;transform:translateX(-50%);font-size:30px;z-index:3;display:none">⚽️</div><div id="catchHand" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);font-size:40px;z-index:4;cursor:pointer;user-select:none" onpointerdown="catchHandClick(this)">🙌</div></div><button class="opt" style="text-align:center;background:#e8ddd0;margin-top:12px" onclick="closeM()">关闭</button>';
+  showPanel(html);
+  var catchBallEl=document.getElementById('catchBall'),catEl=document.getElementById('catchCat');
+  setTimeout(function(){catEl.style.transform='translateX(-50%) translateY(-40px)'},100);
+  setTimeout(function(){catEl.style.transform='translateX(-50%) translateY(0)'},400);
+  window.catchBallSpeed = 2.5 + Math.random() * 3.5; 
+  setTimeout(function(){ if(!document.getElementById('catchArea')) return; catchBallEl.style.display='block'; window.catchBallY=0; window.catchGameRunning = true; catchLoop(); },600);
+}
+function catchLoop() {
+  if(!window.catchGameRunning || !document.getElementById('catchBall')) return;
+  if (window.catchBallY < 200) { window.catchBallY += window.catchBallSpeed; document.getElementById('catchBall').style.top = window.catchBallY + 'px'; requestAnimationFrame(catchLoop); }
+  else { window.catchGameRunning = false; document.getElementById('catchBall').style.display = 'none'; toast('没接住...'); setTimeout(function(){closeM()},800); }
+}
+function catchHandClick(el) {
+  if (!window.catchGameRunning) return; el.textContent = '🙏';
+  if (window.catchBallY > 100 && window.catchBallY < 200) {
+    window.catchGameRunning = false; if(document.getElementById('catchBall')) document.getElementById('catchBall').style.display='none';
+    coinSnd(); var reward = Math.floor(Math.random()*3) + 3; s.mood=Math.min(100,s.mood+5); s.gold+=reward; saveData(); checkStar();
+    toast('🎉 接住啦！💖+5 💰+'+reward); render(); setTimeout(function(){closeM()},1000);
+  } else { setTimeout(function(){el.textContent='🙌'},300); }
+}
+
+function render() {
+  checkDay();
+  saveData(); 
+  
+  var c = s.catName ? CATS[s.catName] : null;
+  var head = '<div class="card" style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:8px 10px;gap:4px"><div style="display:flex;gap:6px;white-space:nowrap;overflow:hidden;flex:1"><b>🏡猫咪小院</b><span>💖'+s.mood+'</span><span>⭐'+s.star+'</span><span>💰'+s.gold+'</span><span>📅'+s.playDays+'天</span></div><span style="cursor:pointer;opacity:.35;font-size:14px;padding-left:4px;flex-shrink:0" onclick="resetSave()">🗑</span></div>';
+  var body = '';
+  
+  if(!c) {
+    body = '<div class="card"><div class="scene" style="display:grid;place-items:center;font-size:60px">🐈🐈🐈</div></div>';
+  } else if(scene === 'outside') {
+    body = '<div class="card" style="padding:0"><div class="scene" id="sceneBox">'+
+      '<div class="point" style="left:10%;top:15%" onclick="travel()">🚏<small>旅行</small></div>'+
+      '<div class="point" style="left:38%;top:30%;font-size:70px" onclick="goto(\'room\')">🏡<small>小屋</small></div>'+
+      '<div class="point" style="left:70%;top:15%;font-size:56px" onclick="visitNeighbor()">🏘️<small>邻居</small></div>'+
+      '<div style="position:absolute;left:25%;top:65%;font-size:24px">🚲</div>'+
+      '<div style="position:absolute;left:65%;top:60%;font-size:20px">🛴</div>'+
+    '</div></div>';
+  } else if(scene === 'room') {
+    if(!roomPos) { roomPos = pick([[18,68],[32,68],[46,68],[60,68],[74,68]]); }
+    var plant = s.furniture.indoorPlant ? '<div class="point" style="left:22%;top:64%;font-size:36px;z-index:2" onclick="displayFurn(\'indoorPlant\')">🪴</div>' : '';
+    var catEl = !catInBasket ? '<div id="mainCat" class="point" style="left:'+roomPos[0]+'%;top:'+roomPos[1]+'%;margin-left:-40px;z-index:10" onclick="mainTouchClick(event)" ontouchstart="mainTouchStart(event)" ontouchend="mainTouchEnd(event)" oncontextmenu="return false;"><div class="cat-anim"><img class="cat-img" src="'+c.img+'" alt="cat"></div></div>' : '';
+    var basketEl = catInBasket ? '<div class="point" style="left:32%;top:74%;font-size:38px;z-index:9" onclick="if(Math.random()<0.5){triggerDream()}else{toast(\'💤 猫咪在篮子里睡得正香\')}">🧺<span class="zzz">💤</span></div>' : '<div class="point" style="left:32%;top:74%;font-size:38px;z-index:9;opacity:.65" onclick="wakeCat()">🧺</div>';
+    var v1El = (v1Name && v1Pos) ? '<div id="v1Cat" class="point" style="left:'+v1Pos[0]+'%;top:'+v1Pos[1]+'%;margin-left:-40px;z-index:11" onclick="visitorTouchClick(event,\'v1Cat\',\''+v1Name+'\')" ontouchstart="visitorTouchStart(event,\'v1Cat\',\''+v1Name+'\',['+v1Pos+'])" ontouchend="visitorTouchEnd(event)" oncontextmenu="return false;"><div class="cat-anim"><img class="cat-img" src="'+CATS[v1Name].img+'" alt="cat"></div></div>' : '';
+    body = '<div class="card" style="padding:0"><div class="scene" id="sceneBox" style="background:#fef3c7"><div class="point" style="left:10%;top:40%;z-index:2" onclick="doorMenu()">🚪<small>大门</small></div><div class="point" style="left:42%;top:52%;font-size:56px;z-index:2" onclick="catPanel()">🛋<small>沙发</small></div>'+catEl+'<div class="point" style="left:80%;top:10%;font-size:34px;z-index:2" onclick="postcards()">🗓<small>明信片</small></div><div class="point" style="left:82%;top:44%;z-index:2" onclick="goto(\'yard\')">🧩<small>院子</small></div>'+plant+basketEl+v1El+'</div></div>';
+  } else {
+    var f = '';
+    if(s.furniture.ladder)f+='<div class="point" style="left:20%;top:48%;font-size:36px;z-index:2" onclick="displayFurn(\'ladder\')">🪵</div>';
+    if(s.furniture.rock)f+='<div class="point" style="left:30%;top:76%;font-size:36px;z-index:2" onclick="displayFurn(\'rock\')">🪨</div>';
+    if(s.furniture.fountain)f+='<div class="point" style="left:66%;top:76%;font-size:36px;z-index:2" onclick="displayFurn(\'fountain\')">⛲</div>';
+    if(s.furniture.slide)f+='<div class="point" style="left:82%;top:48%;font-size:36px;z-index:2" onclick="displayFurn(\'slide\')">🛝</div>';
+    var v1El = (v1Name && v1Pos) ? '<div id="v1Cat" class="point" style="left:'+v1Pos[0]+'%;top:'+v1Pos[1]+'%;margin-left:-40px;z-index:11" onclick="visitorTouchClick(event,\'v1Cat\',\''+v1Name+'\')" ontouchstart="visitorTouchStart(event,\'v1Cat\',\''+v1Name+'\',['+v1Pos+'])" ontouchend="visitorTouchEnd(event)" oncontextmenu="return false;"><div class="cat-anim"><img class="cat-img" src="'+CATS[v1Name].img+'" alt="cat"></div></div>' : '';
+    var v2El = (v2Name && v2Pos) ? '<div id="v2Cat" class="point" style="left:'+v2Pos[0]+'%;top:'+v2Pos[1]+'%;margin-left:-40px;z-index:11" onclick="visitorTouchClick(event,\'v2Cat\',\''+v2Name+'\')" ontouchstart="visitorTouchStart(event,\'v2Cat\',\''+v2Name+'\',['+v2Pos+'])" ontouchend="visitorTouchEnd(event)" oncontextmenu="return false;"><div class="cat-anim"><img class="cat-img" src="'+CATS[v2Name].img+'" alt="cat"></div></div>' : '';
+
+    body = '<div class="card" style="padding:0"><div class="scene" id="sceneBox" style="background:#dcfce7"><div style="position:absolute;left:6%;top:6%;font-size:38px;cursor:pointer;user-select:none;z-index:2" onclick="clickTree(this)">🌳</div><div style="position:absolute;left:38%;top:6%;font-size:38px;cursor:pointer;user-select:none;z-index:2" onclick="clickTree(this)">🌲</div><div style="position:absolute;left:72%;top:6%;font-size:38px;cursor:pointer;user-select:none;z-index:2" onclick="clickTree(this)">🌳</div><div style="position:absolute;left:55%;top:12%;font-size:22px;z-index:2">🍃</div><div style="position:absolute;left:22%;top:14%;font-size:20px;z-index:2">🌿</div><div id="mainCat" class="point" style="left:'+mainPos[0]+'%;top:'+mainPos[1]+'%;margin-left:-40px;z-index:10" onclick="mainTouchClick(event)" ontouchstart="mainTouchStart(event)" ontouchend="mainTouchEnd(event)" oncontextmenu="return false;"><div class="cat-anim"><img class="cat-img" src="'+c.img+'" alt="cat"></div></div><div class="point" style="left:8%;top:78%;z-index:2" onclick="goto(\'room\')">🏠<small>回屋</small></div>'+f+v1El+v2El+'</div></div>';
+  }
+  document.getElementById('app').innerHTML = '<div class="app">'+head+body+'</div>';
+  
+  startCatTick();
+  startInteractionTimer();
+}
+
+function startCatTick(){
+  if(window.tickTimer) { clearTimeout(window.tickTimer); window.tickTimer = null; }
+  if(scene !== 'room' || catInBasket || !s.catName) return;
+  window.tickTimer = setTimeout(function(){
+    window.tickTimer = null;
+    if(scene !== 'room' || catInBasket) return;
+    var cat = document.getElementById('mainCat');
+    if(cat) { var inner = cat.querySelector('.cat-anim'); if(inner && Math.random() < 0.6) { inner.classList.add('cat-hop'); setTimeout(function(){inner.classList.remove('cat-hop')}, 600); } }
+    startCatTick();
+  }, 3500 + Math.random() * 4000);
+}
+
+function goto(x){
+  if(x==='room')roomPos=null;
+  if(x!=='room'){catInBasket=false; stopPurr();}
+  scene=x;
+  
+  v1Name=null; v1Pos=null; v1Watered=false; v1Fed=false;
+  v2Name=null; v2Pos=null; v2Watered=false; v2Fed=false;
+
+  if(x==='room'){
+    mainPos=null;
+    if(Math.random()<0.35){
+      var others = Object.keys(CATS).filter(function(n){return n!==s.catName});
+      v1Name = pick(others); v1Pos = pick([[18,65],[78,65],[46,80],[74,80]]);
+    }
+  } else if(x==='yard'){
+    mainPos = pick([[20,60], [50,60], [80,60], [25,80], [55,80], [85,80]]);
+    var r = Math.random();
+    if(r < 0.35) {
+      var others = Object.keys(CATS).filter(function(n){return n!==s.catName});
+      others = others.sort(function(){return 0.5 - Math.random()});
+      v1Name = others[0]; 
+      v1Pos = pick([[20,60], [50,60], [80,60], [25,80], [55,80], [85,80]]);
+      while(Math.abs(v1Pos[0]-mainPos[0]) < 20 && Math.abs(v1Pos[1]-mainPos[1]) < 15) {
+        v1Pos = pick([[20,60], [50,60], [80,60], [25,80], [55,80], [85,80]]);
+      }
+      
+      if(r < 0.15) {
+        v2Name = others[1]; 
+        v2Pos = pick([[20,60], [50,60], [80,60], [25,80], [55,80], [85,80]]);
+        while((Math.abs(v2Pos[0]-mainPos[0]) < 20 && Math.abs(v2Pos[1]-mainPos[1]) < 15) || (Math.abs(v2Pos[0]-v1Pos[0]) < 20 && Math.abs(v2Pos[1]-v1Pos[1]) < 15)) {
+          v2Pos = pick([[20,60], [50,60], [80,60], [25,80], [55,80], [85,80]]);
+        }
+      }
+    }
+  }
+
+  render();
+  if(x==='room'){
+    if(Math.random()<0.3){ catInBasket=true; render(); startPurr(); } else { scheduleBasketCheck(); }
+  }
+}
+
+function scheduleBasketCheck(){
+  if(basketTimer)clearTimeout(basketTimer);
+  basketTimer=setTimeout(function(){
+    if(scene==='room'&&s.catName&&!catInBasket){ catInBasket=true; render(); startPurr(); }
+  },35000+Math.random()*10000);
+}
+
+function wakeCat(){ if(catInBasket){ toast('💤 猫咪在篮子里睡得正香'); } else{ toast('🧺 空篮子'); } }
+
+function pet() {
+  initAudio(); if(!s.catName) return;
+  if(Math.random() < 0.15) { rustle(); startCatchGame(); return; }
+  meowSnd(); checkDay();
+  var first = s.daily.pet === false;
+  if(first) { s.mood=Math.min(100,s.mood+8); s.daily.pet=true; saveData(); checkStar(); toast('💖 +8'); }
+  else { toast(pick(CATS[s.catName].petTexts||['💕 蹭了蹭'])); }
+  
+  var catX = (scene==='yard') ? mainPos[0] : (roomPos ? roomPos[0] : 50);
+  var catY = (scene==='yard') ? mainPos[1] : (roomPos ? roomPos[1] : 58);
+  showFloatingEmoji(catX, catY, pick(['😻','😹','😸','😺','😽']));
+  render();
+  setTimeout(function(){
+    var box = document.querySelector('.scene'); if(!box) return;
+    for(var i=0;i<5;i++) { (function(i){ setTimeout(function(){ var el = document.createElement('span'); el.className = 'heart'; el.textContent = CATS[s.catName].heart; el.style.left = (catX + Math.random()*14 - 7) + '%'; el.style.top = (catY + Math.random()*8 - 4) + '%'; box.appendChild(el); setTimeout(function(){el.remove()}, 1800); }, i*70); })(i); }
+  }, 60);
+}
+
+function showFloatingEmoji(x, y, emoji) {
+  var box = document.querySelector('.scene'); if(!box) return;
+  var el = document.createElement('span'); el.className = 'heart'; el.textContent = emoji;
+  el.style.left = x + '%'; el.style.top = y + '%'; el.style.fontSize = '30px';
+  box.appendChild(el); setTimeout(function(){ el.remove(); }, 1600);
+}
+
+function checkDay(){var d=today();if(s.lastDay!==d){if(s.lastDay!=='')s.playDays++;s.lastDay=d;s.daily={fed:false,bath:false,litter:false,pet:false,single:false,reward:false,neighborEmpty:false,dream:false,trainEvent:false};saveData();}}
+function save(){saveData();toast('💾 已保存')}
+function chooseCat(){var html='<h3>🐈 选择猫咪</h3>';for(var n in CATS){var c=CATS[n];html+='<button class="opt" onclick="pickCat(\''+n+'\')" style="display:flex;align-items:center;gap:12px"><img src="'+c.img+'" style="width:48px;height:48px;object-fit:contain"><span>'+n+'｜'+c.job+'</span></button>'}showPanel(html)}
+function pickCat(n){s.catName=n;saveData();closeM();render();toast('🐈 欢迎 '+n);setTimeout(function(){var F=checkFestival();if(F)showFestival(F);else checkOnline()},900)}
+
+function catPanel(){
+    checkDay();var c=CATS[s.catName];
+    var btnBath = s.daily.bath ? '✅ 今天已经洗过澡啦' : '🫧 洗澡 +12';
+    var btnLitter = s.daily.litter ? '✅ 今天已经铲过屎啦' : '⛳️ 铲屎 +5';
+    
+    var html='<div style="text-align:center"><img src="'+c.img+'" style="width:80px;height:80px;object-fit:contain"></div><h3>'+s.catName+'</h3><p style="text-align:center">💖 心情值：'+s.mood+'/100</p><p style="text-align:center;font-size:12px;color:#806f60">背包食物：'+s.inventory.length+' 件</p>'+
+    '<button class="opt" onclick="feedPanel()">🍽 喂食</button>'+
+    '<button class="opt" onclick="doBath()" '+(s.daily.bath?'disabled style="opacity:0.5;background:#eee"':'')+'>'+btnBath+'</button>'+
+    '<button class="opt" onclick="doLitter()" '+(s.daily.litter?'disabled style="opacity:0.5;background:#eee"':'')+'>'+btnLitter+'</button>'+
+    '<button class="opt" style="text-align:center;background:#e8ddd0;margin-top:12px" onclick="closeM()">关闭</button>';
+    showPanel(html);
+}
+function doBath(){checkDay();if(s.daily.bath){toast('洗过啦');return}s.daily.bath=true;s.mood=Math.min(100,s.mood+12);saveData();checkStar();render();catPanel()}
+function doLitter(){checkDay();if(s.daily.litter){toast('铲过啦');return}s.daily.litter=true;s.mood=Math.min(100,s.mood+5);saveData();checkStar();render();catPanel()}
+function feedPanel(){checkDay();var c=CATS[s.catName],html='<div style="text-align:center"><img src="'+c.img+'" style="width:60px;height:60px;object-fit:contain"></div><h3>🍽 喂食</h3><p style="text-align:center">💖 '+s.mood+'/100　💰 '+s.gold+'</p>';if(s.daily.fed)html+='<p style="text-align:center;padding:14px;color:#806f60">✅ 今天已经喂过啦</p>';else if(s.inventory.length===0)html+='<p style="text-align:center;padding:14px;color:#806f60">背包空空如也</p>';else{var counts={};for(var i=0;i<s.inventory.length;i++){var n=s.inventory[i];counts[n]=(counts[n]||0)+1}for(var name in counts){var icon='🍽';for(var k=0;k<FOOD_SHOP.length;k++)if(FOOD_SHOP[k][1]===name)icon=FOOD_SHOP[k][0];var tag=c.like.indexOf(name)>=0?' ⭐':(c.dislike.indexOf(name)>=0?' ❌':'');html+='<div class="item"><div class="info"><div class="name">'+icon+' '+name+' × '+counts[name]+tag+'</div></div><button onclick="feed(\''+name+'\')">喂食</button></div>'}}html+='<button class="opt" style="text-align:center;margin-top:16px" onclick="openFoodShop()">🛒 去购买</button><button class="opt" style="text-align:center;background:#e8ddd0" onclick="catPanel()">返回</button>';showPanel(html)}
+function feed(name){checkDay();if(s.daily.fed){toast('喂过啦');return}var i=s.inventory.indexOf(name);if(i<0)return;var c=CATS[s.catName],v=6,msg='💖 +6';if(c.like.indexOf(name)>=0){v=10;msg='💖 +10 ⭐'}else if(c.dislike.indexOf(name)>=0){v=-3;msg='💔 -3'}s.inventory.splice(i,1);s.daily.fed=true;s.mood=Math.max(0,Math.min(100,s.mood+v));saveData();checkStar();toast(msg);render();feedPanel()}
+function openFoodShop(){var html='<h3>🛒 食物商店</h3><p class="hint">当前金币：💰 '+s.gold+'</p>';for(var i=0;i<FOOD_SHOP.length;i++){var f=FOOD_SHOP[i];html+='<div class="item"><div class="info"><div class="name">'+f[0]+' '+f[1]+'</div><div class="desc">'+f[3]+' 金币</div></div><button onclick="buyFood('+i+')">购买</button></div>'}html+='<button class="opt" style="text-align:center;margin-top:12px" onclick="feedPanel()">返回</button><button class="opt" style="text-align:center;background:#e8ddd0" onclick="closeM()">关闭</button>';showPanel(html)}
+function buyFood(i){var f=FOOD_SHOP[i];if(s.gold<f[3]){toast('余额不足');return}s.gold-=f[3];s.inventory.push(f[1]);saveData();toast('已购入');render();openFoodShop()}
+function doorMenu(){var html='<h3>🚪 大门</h3><button class="opt" onclick="closeM();goto(\'outside\')">返回屋外</button><button class="opt" onclick="openFurnShop()">🛍 家具商店</button><button class="opt" style="text-align:center;background:#e8ddd0" onclick="closeM()">关闭</button>';showPanel(html)}
+function openFurnShop(){var html='<h3>🛍 家具商店</h3><p class="hint">金币：💰 '+s.gold+'</p>';for(var i=0;i<FURN_SHOP.length;i++){var f=FURN_SHOP[i];var owned=s.furniture[f[0]];html+='<div class="item"><div class="info"><div class="name">'+f[1]+' '+f[2]+'</div><div class="desc">'+f[3]+' · '+f[4]+' 金币</div></div><button onclick="buyFurn(\''+f[0]+'\','+f[4]+')" '+(owned?'disabled':'')+'>'+(owned?'已拥有':'购买')+'</button></div>'}html+='<button class="opt" style="text-align:center;margin-top:12px" onclick="closeM();doorMenu()">返回</button><button class="opt" style="text-align:center;background:#e8ddd0" onclick="closeM()">关闭</button>';showPanel(html)}
+function buyFurn(key,price){if(s.gold<price){toast('余额不足');return}s.gold-=price;s.furniture[key]=true;saveData();render();closeM();setTimeout(function(){triggerFurnStory(key)},250)}
+
+function triggerFurnStory(key){
+    var f=FURN[key], linesArr = f.lines[s.catName]; 
+    var ev;
+    var storyKey = key + '_' + s.catName;
+    
+    // 判断是不是第一次触发这个家具这个猫的剧情
+    if (!s.furnStorySeen[storyKey]) {
+        // 第一次触发，使用 0 号专属文本
+        ev = linesArr[0];
+        s.furnStorySeen[storyKey] = true;
+        saveData();
+    } else {
+        // 之后触发，从 1、2 号随机文本中抽取
+        ev = pick([linesArr[1], linesArr[2]]);
+    }
+
+    var opts=[[ev[1],ev[2]],[ev[3],ev[4]],[ev[5],ev[6]]];
+    for(var i=opts.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),tmp=opts[i];opts[i]=opts[j];opts[j]=tmp}
+    var html='<div style="font-size:40px;text-align:center">'+f.icon+'</div><h3>'+f.name+'｜'+s.catName+'</h3><p style="line-height:1.7">'+ev[0]+'</p>';
+    for(var k=0;k<opts.length;k++)html+='<button class="opt" onclick="starFurnChoice('+opts[k][1]+')">'+'ABC'[k]+'：'+opts[k][0]+'</button>';
+    showPanel(html);
+}
+function starFurnChoice(moodV){var g=moodV>=7?4:(moodV>=6?2:-1);s.gold=Math.max(0,s.gold+g);saveData();closeM();toast(g>0?'💰 +'+g:'💰 '+g);render()}
+function displayFurn(key){if(s.star>=1){showPanel('<div style="text-align:center;font-size:40px">'+FURN[key].icon+'</div><h3>'+FURN[key].name+'</h3><p style="text-align:center">'+FURN_DESC[key]+'</p><button class="opt" style="text-align:center;background:#f3eadf" onclick="confirmFurn(\''+key+'\')">⭐ 消耗 1 颗触发剧情</button><button class="opt" style="text-align:center;background:#e8ddd0" onclick="closeM()">只是看看</button>')}else{toast(FURN_DESC[key])}}
+function confirmFurn(key){if(s.star<1)return;s.star-=1;saveData();closeM();setTimeout(function(){triggerFurnStory(key)},200)}
+
+function travel(){var html='<h3>🚏 旅行</h3><p class="hint">金币任务 -20 出发；明信片 -10 出发。</p><button class="opt" onclick="closeM();doTravel(\'gold\')">🚞 金币任务</button><button class="opt" onclick="closeM();doTravel(\'card\')">🖼 明信片旅行</button><button class="opt" style="text-align:center;background:#e8ddd0" onclick="closeM()">关闭</button>';showPanel(html)}
+function doTravel(type){if(type==='gold'){if(s.gold<20){toast('金币不足');return}s.gold-=20;saveData();if(Math.random()<0.25){ setTimeout(trainEvent, 200); return; }var ev=pick(GOLD),opts=[{text:ev[1],mood:ev[2],gold:0},{text:ev[3],mood:0,gold:ev[4]},{text:ev[5],mood:ev[6],gold:0}];for(var i=opts.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=opts[i];opts[i]=opts[j];opts[j]=t}var html='<div style="font-size:40px;text-align:center">🚏</div><h3>金币任务</h3><p>'+ev[0]+'</p>';for(var k=0;k<opts.length;k++)html+='<button class="opt" onclick="chooseTravel('+opts[k].mood+','+opts[k].gold+')">'+'ABC'[k]+'：'+opts[k].text+'</button>';html+='<button class="opt" style="text-align:center;background:#e8ddd0" onclick="refundTravel(20)">稍后处理</button>';showPanel(html);render()}else{if(s.gold<10){toast('金币不足');return}s.gold-=10;saveData();var collected=[];for(var i=0;i<CARD.length;i++)if(s.postCards.indexOf(CARD[i][0])>=0)collected.push(CARD[i]);var ev;if(collected.length>0&&Math.random()<0.6)ev=pick(collected);else ev=pick(CARD);var opts=[[ev[3],ev[4]],[ev[5],ev[6]],[ev[7],ev[8]]];for(var i=opts.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=opts[i];opts[i]=opts[j];opts[j]=t}var html='<div style="font-size:40px;text-align:center">'+ev[0]+'</div><h3>'+ev[1]+'</h3><p>'+ev[2]+'</p>';for(var k=0;k<opts.length;k++)html+='<button class="opt" onclick="chooseCard(\''+ev[0]+'\','+opts[k][1]+')">'+'ABC'[k]+'：'+opts[k][0]+'</button>';html+='<button class="opt" style="text-align:center;background:#e8ddd0" onclick="refundTravel(10)">稍后处理</button>';showPanel(html);render()}}
+function chooseTravel(mood,gold){if(mood>0)s.mood=Math.min(100,s.mood+mood);if(gold>0){s.gold+=gold;coinSnd()}saveData();checkStar();closeM();var msg='';if(mood>0)msg+='💖+'+mood+' ';if(gold>0)msg+='💰+'+gold;toast(msg);render()}
+function chooseCard(emoji,mood){s.mood=Math.min(100,s.mood+mood);if(s.postCards.indexOf(emoji)<0){s.postCards.push(emoji);toast('🗓 明信片解锁！💖+'+mood)}else{var g=pick([9,10,15]);s.gold+=g;coinSnd();toast('💖+'+mood+'　💰+'+g)}saveData();checkStar();closeM();render()}
+function postcards(){var html='<h3>🗓 图鉴</h3><p class="hint">已收集 '+s.postCards.length+'/16</p><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px">';for(var i=0;i<CARD.length;i++){var c=CARD[i],got=s.postCards.indexOf(c[0])>=0,locked=got?'':'opacity:.22;filter:grayscale(1);',fs=got?'24px':'18px';html+='<div style="height:40px;display:grid;place-items:center;font-size:'+fs+';border:1px solid #e4d9ca;border-radius:9px;background:#fff;'+locked+'">'+c[0]+'</div>'}html+='</div><button class="opt" style="text-align:center;background:#e8ddd0;margin-top:12px" onclick="closeM()">关闭</button>';showPanel(html)}
+function checkOnline(){var d=today();if(s.lastOnlineDay===d)return;s.lastOnlineDay=d;saveData();var ev=pick(ONLINE),opts=[[ev[1],ev[2]],[ev[3],ev[4]],[ev[5],ev[6]]],html='<div style="font-size:40px;text-align:center">☎️</div><h3>联机事件</h3><p>'+ev[0]+'</p>';for(var k=0;k<opts.length;k++)html+='<button class="opt" onclick="onlineChoose('+opts[k][1]+')">'+'ABC'[k]+'：'+opts[k][0]+'</button>';showPanel(html)}
+function onlineChoose(v){s.mood=Math.min(100,s.mood+v);saveData();checkStar();closeM();toast('💖+'+v);render()}
+function checkFestival(){var now=new Date(),m=now.getMonth()+1,d=now.getDate(),y=now.getFullYear();if(s.lastYear!==y){s.lastYear=y;s.festivalFlags={spring:false,yuanxiao:false,duanwu:false,midautumn:false,xmas:false,halloween:false,shopping:false}}for(var k in FEST){var F=FEST[k];if(s.festivalFlags[F.flag])continue;for(var i=0;i<F.dates.length;i++){if(F.dates[i][0]===m&&F.dates[i][1]===d){s.festivalFlags[F.flag]=true;saveData();return F}}}return null}
+function showFestival(F){var ev=pick(F.sets),opts=[[ev[1],ev[2]],[ev[3],ev[4]],[ev[5],ev[6]]],html='<div style="font-size:40px;text-align:center">'+F.icon+'</div><h3>'+F.name+'</h3><p>'+ev[0]+'</p>';for(var k=0;k<opts.length;k++)html+='<button class="opt" onclick="onlineChoose('+opts[k][1]+')">'+'ABC'[k]+'：'+opts[k][0]+'</button>';showPanel(html)}
+
+var birdRunning=false,birdObjs=[],birdScore=0,birdStart=0,birdSpawnTimer=null,birdLoopId=null,birdMiss=0,BIRD_LINE=100;
+function birdGame(){closeM();var html='<h3>🐦🎶 小鸟音符</h3><p class="hint">小鸟落到判定线时点对应轨道。5 次失误结束。</p><div id="gameWrap" style="position:relative;width:100%;height:320px;background:linear-gradient(#dbeafe,#e0f2fe);border-radius:14px;overflow:hidden;margin-top:8px"></div><div style="display:flex;gap:8px;margin-top:10px"><button class="btn" style="flex:1;margin-top:0" onpointerdown="birdHit(0)">🔵左</button><button class="btn" style="flex:1;margin-top:0" onpointerdown="birdHit(1)">🔷中</button><button class="btn" style="flex:1;margin-top:0" onpointerdown="birdHit(2)">🔵右</button></div><button class="opt" style="text-align:center;background:#e8ddd0;margin-top:12px" onclick="birdQuit()">关闭</button>';showPanel(html);setTimeout(startBird,100)}
+function startBird(){var wrap=document.getElementById('gameWrap');if(!wrap)return;birdObjs=[];birdScore=0;birdMiss=0;birdStart=performance.now();birdRunning=true;wrap.innerHTML='';var line=document.createElement('div');line.style.cssText='position:absolute;left:0;right:0;bottom:'+BIRD_LINE+'px;height:3px;background:#3b82f6;box-shadow:0 0 8px #3b82f6;';wrap.appendChild(line);for(var i=1;i<3;i++){var sep=document.createElement('div');sep.style.cssText='position:absolute;top:0;bottom:0;left:'+(i*33.33)+'%;width:1px;background:#0001;';wrap.appendChild(sep)}var sc=document.createElement('div');sc.id='birdScore';sc.style.cssText='position:absolute;top:8px;left:12px;font-size:15px;color:#1e40af;font-weight:bold;';sc.textContent='得分：0　失误：0/5';wrap.appendChild(sc);function spawn(){if(!birdRunning)return;var kinds=[['🐦',40],['🐦‍⬛',25],['🕊',20],['🍃',15]],r=Math.random()*100,acc=0,picked='🐦';for(var i=0;i<kinds.length;i++){acc+=kinds[i][1];if(r<acc){picked=kinds[i][0];break}}var lane=Math.floor(Math.random()*3),el=document.createElement('div');el.className='birdLane';el.textContent=picked;el.style.left=(lane*33.33)+'%';el.style.top='-40px';wrap.appendChild(el);birdObjs.push({el:el,lane:lane,y:-40});birdSpawnTimer=setTimeout(spawn,320+Math.random()*450)}spawn();function loop(){if(!birdRunning)return;var elapsed=(performance.now()-birdStart)/1000,speed=70*(1+Math.min(elapsed/25,1)*0.9),lineY=wrap.clientHeight-BIRD_LINE;for(var i=birdObjs.length-1;i>=0;i--){var o=birdObjs[i];o.y+=speed/60;o.el.style.top=o.y+'px';if(o.y>lineY+25){o.el.remove();birdObjs.splice(i,1);birdMiss++;var sc2=document.getElementById('birdScore');if(sc2)sc2.textContent='得分：'+birdScore+'　失误：'+birdMiss+'/5';if(birdMiss>=5){birdRunning=false;if(birdSpawnTimer){clearTimeout(birdSpawnTimer);birdSpawnTimer=null}if(birdLoopId){cancelAnimationFrame(birdLoopId);birdLoopId=null}setTimeout(function(){birdQuit()},250);return}}}birdLoopId=requestAnimationFrame(loop)}loop()}
+function birdHit(lane){if(!birdRunning)return;clickSnd();var wrap=document.getElementById('gameWrap');if(!wrap)return;var lineY=wrap.clientHeight-BIRD_LINE,best=null,bestDist=999;for(var i=0;i<birdObjs.length;i++){var o=birdObjs[i];if(o.lane!==lane)continue;var d=Math.abs(o.y-lineY);if(d<bestDist){bestDist=d;best=o}}if(best&&bestDist<62){best.el.style.transition='opacity .25s, transform .25s';best.el.style.opacity='0';best.el.style.transform='scale(1.5)';var el=best.el;setTimeout(function(){el.remove()},280);birdObjs=birdObjs.filter(function(o){return o!==best});birdScore+=10;var sc=document.getElementById('birdScore');if(sc)sc.textContent='得分：'+birdScore+'　失误：'+birdMiss+'/5'}}
+function birdQuit(){stopBird();var reward=Math.floor(birdScore/100),moodReward=reward>5?5:reward,coinReward=reward;if(moodReward>0)s.mood=Math.min(100,s.mood+moodReward);if(coinReward>0){s.gold+=coinReward;coinSnd()}saveData();checkStar();render();var endReason=(birdMiss>=5)?'失误 5 次':'手动结束',html='<div style="font-size:40px;text-align:center">🎉</div><h3>音游结束</h3><p style="text-align:center;font-size:12px;color:#806f60">'+endReason+'</p><p style="text-align:center;font-size:18px">得分：'+birdScore+'</p><p style="text-align:center">'+(moodReward>0?'💖+'+moodReward+'　':'')+(coinReward>0?'💰+'+coinReward:'（无奖励）')+'</p><button class="opt" style="text-align:center" onclick="closeM()">好</button>';showPanel(html)}
+function stopBird(){birdRunning=false;if(birdSpawnTimer){clearTimeout(birdSpawnTimer);birdSpawnTimer=null}if(birdLoopId){cancelAnimationFrame(birdLoopId);birdLoopId=null}}
+function taskMenu(){if(!s.catName){chooseCat();return}checkDay();if(s.mood<60){toast('💖 心情太低啦');return}var singleMark=s.daily.single?'✅ ':'',rewardMark=s.daily.reward?'✅ ':'',html='<h3>📜 任务</h3><p class="hint">职业任务扣 10 心情；事件每天限一次。</p><button class="opt" onclick="closeM();jobEvent()">📞 职业任务（'+s.catName+'｜'+CATS[s.catName].job+'）</button><button class="opt" onclick="closeM();singleEvent()">'+singleMark+'☎️ 单人事件</button><button class="opt" onclick="closeM();rewardEvent()">'+rewardMark+'📞 联机悬赏</button><button class="opt" style="text-align:center;background:#e8ddd0" onclick="closeM()">关闭</button>';showPanel(html)}
+function jobEvent(){var ev=pick(JOB[s.catName]);showTask('📞',s.catName+'｜'+CATS[s.catName].job,ev,'job')}
+function singleEvent(){checkDay();if(s.daily.single){toast('做过啦');return}var ev=pick(SINGLE);showTask('☎️','单人事件',ev,'single')}
+function rewardEvent(){checkDay();if(s.daily.reward){toast('做过啦');return}var ev=pick(REWARD);showTask('📞','联机悬赏',ev,'reward')}
+function showTask(icon,title,ev,type){var opts;if(type==='reward'){opts=[[ev[1],ev[2]],[ev[3],ev[4]]]}else{opts=[[ev[1],ev[2]],[ev[3],ev[4]],[ev[5],ev[6]]]}for(var i=opts.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),tmp=opts[i];opts[i]=opts[j];opts[j]=tmp}var html='<div style="font-size:40px;text-align:center">'+icon+'</div><h3>'+title+'</h3><p>'+ev[0]+'</p>';for(var k=0;k<opts.length;k++)html+='<button class="opt" onclick="chooseTask(\''+opts[k][1]+'\',\''+type+'\')">'+'ABC'[k]+'：'+opts[k][0]+'</button>';html+='<button class="opt" style="text-align:center;background:#e8ddd0" onclick="closeM()">稍后</button>';showPanel(html)}
+function parseVal(v){var sv=String(v);if(sv.indexOf('|')>=0){var p=sv.split('|');return [parseInt(p[0])||0,parseInt(p[1])||0]}return [parseInt(sv)||0,0]}
+function chooseTask(v,type){checkDay();if(type==='single')s.daily.single=true;if(type==='reward')s.daily.reward=true;var pv=parseVal(v),moodV=pv[0],goldV=pv[1],decay=(type==='job')?10:0;s.mood=Math.max(0,Math.min(100,s.mood+moodV-decay));var goldGain=goldV;if(type==='job')goldGain+=5;else if(type==='single')goldGain+=3;s.gold=Math.max(0,s.gold+goldGain);if(goldGain>0)coinSnd();saveData();checkStar();closeM();var msg='💖'+moodV;if(decay>0)msg+=' -'+decay;if(goldGain>0)msg+='　💰+'+goldGain;else if(goldGain<0)msg+='　💰'+goldGain;toast(msg);render()}
+
+render();
+if(!s.catName)setTimeout(chooseCat,300);
+else setTimeout(function(){var F=checkFestival();if(F)showFestival(F);else checkOnline()},900);
+</script>
+</body>
+</html>
